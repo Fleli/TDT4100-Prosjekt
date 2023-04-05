@@ -1,6 +1,7 @@
 package Project.Compiler.Parser.StatementTypes;
 
 import Project.Compiler.InstructionGeneration.InstructionList;
+import Project.Compiler.Lexer.Token;
 import Project.Compiler.NameBinding.Environment;
 import Project.Compiler.Parser.Statement;
 import Project.Compiler.Parser.Expressions.Expression;
@@ -32,18 +33,22 @@ public class Declaration implements Statement {
     private Expression initialRhs;
     private Assignment assignment;
     
+    private Token nameToken;
+    
     /**
      * Create a new {@code Declaration} object without an initial value (that is, a specified
      * value other than the default 0 value).
      * @param pointerDepth The level of indirection to an actual {@code int} this variable has
      * @param name The name of this variable in the source code
      */
-    public Declaration ( int pointerDepth , String name ) {
+    public Declaration ( int pointerDepth , String name , Token nameToken ) {
         
         if ( pointerDepth < 0 ) throw new IllegalArgumentException("pointerDepth < 0 er ugyldig");
         
         this.pointerDepth = pointerDepth;
         this.name = name;
+        
+        this.nameToken = nameToken;
         
     }
     
@@ -57,7 +62,7 @@ public class Declaration implements Statement {
      * @param initialRhs The initial {@code Expression} of this variable. Will be treated as an
      * {@code Assignment} object upon runtime, but not during compilation.
      */
-    public Declaration ( int pointerDepth , String name , Expression initialRhs ) {
+    public Declaration ( int pointerDepth , String name , Expression initialRhs , Token nameToken ) {
         
         if ( pointerDepth < 0 ) throw new IllegalArgumentException("pointerDepth < 0 er ugyldig");
         
@@ -67,7 +72,9 @@ public class Declaration implements Statement {
         this.name = name;
         
         this.initialRhs = initialRhs;
-        this.assignment = new Assignment(name, initialRhs);
+        this.assignment = new Assignment(name, initialRhs, nameToken);
+        
+        this.nameToken = nameToken;
         
         if ( name == "remainder" ) {
             System.out.println ( "\n\n\n" + assignment.description() + "\n\n\n" );
@@ -81,6 +88,10 @@ public class Declaration implements Statement {
     
     public int getPointerDepth() {
         return pointerDepth;
+    }
+    
+    public Token getNameToken() {
+        return nameToken;
     }
     
     @Override

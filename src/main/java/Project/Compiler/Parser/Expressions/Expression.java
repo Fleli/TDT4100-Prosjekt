@@ -5,6 +5,7 @@ import java.util.Arrays;
 import java.util.List;
 
 import Project.Compiler.InstructionGeneration.InstructionList;
+import Project.Compiler.Lexer.Token;
 import Project.Compiler.NameBinding.Environment;
 import Project.Compiler.Parser.Statement;
 
@@ -20,6 +21,7 @@ public class Expression implements Statement {
     private int literalValue;
     
     private String reference;
+    private Token referenceToken;
     private int localIndex;
     
     private Expression arg1;
@@ -36,9 +38,10 @@ public class Expression implements Statement {
      * later. Thus, this constructor does not access any {@code Environment}s.
      * @param reference The symbol that is being referenced.
      */
-    public Expression ( String reference ) {
+    public Expression ( String reference , Token referenceToken ) {
         type = "reference";
         this.reference = reference;
+        this.referenceToken = referenceToken;
     }
     
     public Expression ( Expression arg1 , Operator operator ) {
@@ -81,7 +84,7 @@ public class Expression implements Statement {
         
         if ( type.equals("reference") ) {
             
-            localIndex = environment.bind_and_get_local_index(reference);
+            localIndex = environment.bind_and_get_local_index(reference, referenceToken);
             
         } else if ( type.equals("unary") || type.equals("alloc")  ||  type.equals("heapAccess") ) {
             

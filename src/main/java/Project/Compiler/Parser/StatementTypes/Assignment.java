@@ -1,11 +1,14 @@
 package Project.Compiler.Parser.StatementTypes;
 
 import Project.Compiler.InstructionGeneration.InstructionList;
+import Project.Compiler.Lexer.Token;
 import Project.Compiler.NameBinding.Environment;
 import Project.Compiler.Parser.Statement;
 import Project.Compiler.Parser.Expressions.Expression;
 
 public class Assignment implements Statement {
+    
+    private Token lhsToken;
     
     /**
      * The {@code String} symbol used to reference this variable.
@@ -35,16 +38,17 @@ public class Assignment implements Statement {
      * @param rhs An {@code Expression} object representing the value to assign to the
      * specified variable.
      */
-    public Assignment ( String lhs , Expression rhs ) {
+    public Assignment(String lhs, Expression rhs, Token lhsToken) {
         this.lhs = lhs;
         this.rhs = rhs;
+        this.lhsToken = lhsToken;
     }
     
     
     @Override
     public void bind_names(Environment environment) {
         
-        localIndexOfLhs = environment.bind_and_get_local_index(lhs);
+        localIndexOfLhs = environment.bind_and_get_local_index(lhs, lhsToken);
         
         rhs.bind_names(environment);
         

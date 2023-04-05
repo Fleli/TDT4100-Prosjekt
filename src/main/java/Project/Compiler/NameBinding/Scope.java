@@ -3,6 +3,8 @@ package Project.Compiler.NameBinding;
 import java.util.ArrayList;
 import java.util.List;
 
+import Project.Compiler.Compiler.Error;
+import Project.Compiler.Lexer.Token;
 import Project.Compiler.Parser.StatementTypes.Declaration;
 
 /**
@@ -21,14 +23,16 @@ public class Scope {
     
     private List<ScopeEntry> entries = new ArrayList<ScopeEntry>();
     
+    private Environment environment;
     
-    public Scope ( int offset ) {
+    public Scope ( int offset , Environment environment ) {
         
         if ( offset < 1 ) {
             throw new IllegalArgumentException("Scope entry offset cannot be less than 1.");
         }
         
         this.offset = offset;
+        this.environment = environment;
         
     }
     
@@ -37,14 +41,18 @@ public class Scope {
         return offset;
     }
     
-    public int getLocalIndex ( String name ) {
+    public int getLocalIndex(String name, Token referenceToken) {
         
         for ( ScopeEntry entry : entries ) if ( entry.getName().equals(name) ) {
             return entry.getLocalIndex();
         }
         
-        // TODO: Endre dette til normal error-reporting
-        throw new IllegalStateException("No variable " + name + " exists in this scope.");
+        environment.submitError( new Error(
+            "No variable " + name + " exists in this scope.", 
+            referenceToken
+        ) );
+        
+        return 0;
         
     }
     
@@ -76,8 +84,12 @@ public class Scope {
     public void addVariable ( Declaration declaration ) {
         
         if ( variableExists(declaration.getName()) ) {
-            // TODO: Endre dette til normal error-reporting
-            throw new IllegalArgumentException("The variable " + declaration.getName() + " already exists in this scope.");
+            Error newError = new Error(
+                "The variable " + declaration.getName() + " has already been defined in this scope", 
+                declaration.getNameToken()
+            );
+            environment.submitError(newError);
+            return;
         }
         
         ScopeEntry newEntry = new ScopeEntry(declaration, offset);

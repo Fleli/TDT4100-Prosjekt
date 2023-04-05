@@ -47,7 +47,7 @@ public class Lexer {
                 throw new IllegalArgumentException("Character '" + c + "', " + Character.getNumericValue(c) + ", is not allowed.");
             }
         }
-    
+        
         text = input;
         
     }
@@ -55,6 +55,10 @@ public class Lexer {
     public void lex() {
         
         if ( text == null ) throw new IllegalStateException("Cannot lex when specified input is null. Use the setInput(String) method to specify an input.");
+        
+        index = 0;
+        line = 1;
+        col = 0;
         
         tokens = new ArrayList<Token>();
         
@@ -114,10 +118,10 @@ public class Lexer {
     
     private void checkIfKeyword(Token token) {
         
-        if ( token.type() != "identifier" ) throw new IllegalStateException("Only identifiers may be converted to keywords, not tokens of type " + token.type() + ".");
-        
         if ( keywords.contains(token.content()) ) {
             token.setType("keyword");
+        } else {
+            token.setType("identifier");
         }
         
     }

@@ -135,61 +135,46 @@ public class Parser {
                 
                 Declaration declaration = parse_declaration();
                 
-                // TODO: Feilen bør håndteres på et vis
                 if ( declaration != null ) {
                     statements.add(declaration);
-                } else {
-                    throw new IllegalStateException("Failed @ declaration");
                 }
                 
             } else if ( allow_assignments  &&  token.typeIs("identifier") ) {
                 
-                // TODO: Når funksjonskall også støttes, må sjekkingen her utvides noe
-                // TODO: for å skille mellom assignments og funksjonscall
                 Assignment assignment = parse_assignment();
                 
-                // TODO: Feilen bør selvsagt håndteres på en annen måte
                 if ( assignment != null ) {
                     statements.add(assignment);
-                } else {
-                    throw new IllegalStateException("Failed @ assignment");
                 }
                 
             } else if ( allow_conditionals  &&  token.typeIs("keyword")  &&  token.contentIs("if") ) {
                 
                 Conditional conditional = parse_conditional();
                 
-                // TODO: Feilen bør selvsagt håndteres på en annen måte
                 if ( conditional != null ) {
                     statements.add(conditional);
-                } else {
-                    throw new IllegalStateException("Failed @ conditional");
                 }
                 
             } else if ( allow_heapAssign  &&  token.typeIs("keyword")  &&  token.contentIs("heap") ) {
                 
                 HeapAssignment heapAssignment = parse_heapAssignment();
                 
-                // TODO: Feilen bør selvsagt håndteres på en annen måte
                 if ( heapAssignment != null ) {
                     statements.add(heapAssignment);
-                } else {
-                    throw new IllegalStateException("Failed @ heapAssignment");
                 }
                 
             } else if ( allow_while  &&  token.typeIs("keyword")  &&  token.contentIs("while") ) {
                 
                 While loop = parse_while();
                 
-                // TODO: Feilen bør selvsagt håndteres på en annen måte
                 if ( loop != null ) {
                     statements.add(loop);
-                } else {
-                    throw new IllegalStateException("Failed @ whileLoop");
                 }
                 
-            } else {
-                submitErrorOnToken("statement");
+            }
+            
+            else {
+                submitErrorOnToken("statement (at " + index + ")");
                 // lag en form for error recovery her, for eksempel panikk frem til semikolon e.l.
                 // merk også at denne delen ikke er ferdig. I stedet for bare if-else vil det komme
                 // if-else if-...-else for å støtte flere statements.
@@ -219,9 +204,7 @@ public class Parser {
     }
     
     public boolean wasErroneous() {
-        
-        return ( errors.size() > 0 );
-        
+        return ( errors.size() > 0 );   
     }
     
     public void incrementIndex() {
@@ -251,6 +234,7 @@ public class Parser {
         }
         
         String name = tokens.get(index).content();
+        Token nameToken = tokens.get(index);
         
         incrementIndex();
         
@@ -259,11 +243,12 @@ public class Parser {
         
         if ( inputIsExhausted() ) {
             submitErrorOnCurrentLine("Expected ; to end declaration.");
+            return null;
         }
         
         if ( token().typeIs(";") ) {
             incrementIndex();
-            return new Declaration(pointerDepth, name);
+            return new Declaration(pointerDepth, name, nameToken);
         }
         
         // Hvis det *ikke* kom et ; etter navnet, skal det være =, for å gi initial value.
@@ -284,8 +269,6 @@ public class Parser {
         Expression rhs = expressionParser.parse(1);
         
         if ( rhs == null ) {
-            System.out.println("RHS was null in declaration with initialValue");
-            System.exit(1);
             return null;
         }
         
@@ -295,7 +278,7 @@ public class Parser {
         
         incrementIndex();
         
-        return new Declaration(pointerDepth, name, rhs);
+        return new Declaration(pointerDepth, name, rhs, nameToken);
         
     }
     
@@ -303,10 +286,13 @@ public class Parser {
         
         // Vi vet at første token må være av typen identifier siden vi i det hele tatt kom inn i funksjonen.
         String lhs = token().content();
+        Token lhsToken = token();
         
         incrementIndex();
         
-        if ( isExhaustedOrNotSpecificType("=", "Unused identifier " + lhs) );
+        if ( isExhaustedOrNotSpecificType("=", "Unused identifier " + lhs) ) {
+            return null;
+        }
         
         incrementIndex();
         
@@ -327,7 +313,7 @@ public class Parser {
         
         incrementIndex();
         
-        return new Assignment(lhs, rhs);
+        return new Assignment(lhs, rhs, lhsToken);
         
     }
     

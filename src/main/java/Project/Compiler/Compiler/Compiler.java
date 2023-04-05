@@ -1,5 +1,6 @@
 package Project.Compiler.Compiler;
 
+import java.util.ArrayList;
 import java.util.List;
 
 import Project.Compiler.InstructionGeneration.InstructionList;
@@ -9,7 +10,6 @@ import Project.Compiler.NameBinding.Environment;
 import Project.Compiler.Parser.Parser;
 import Project.Compiler.Parser.Statement;
 import Project.VirtualMachine.Runtime;
-import Project.VirtualMachine.VMException;
 
 public class Compiler {
     
@@ -20,68 +20,43 @@ public class Compiler {
     
     private InstructionList executable;
     
-    public void compile ( String sourceCode ) {
+    private List<Error> errors = new ArrayList<Error>();
+    
+    public void compile(String sourceCode, boolean generateExecutable) {
         
         if ( sourceCode == null ) throw new IllegalArgumentException("Source code cannot be null");
         
+        // Setup token and statement lists
+        List<Token> tokens;
+        List<Statement> program;
+        
+        // Lex the input
         lexer.setInput(sourceCode);
-        
         lexer.lex();
+        tokens = lexer.getTokens();
         
-        List<Token> tokens = lexer.getTokens();
-        
+        // Parse the input
         parser.setTokens(tokens);
+        parser.parse();
+        program = parser.getStatements();
         
-        try {
-            
-            parser.parse();
+        // Bind names
+        bindNames(program);
         
-        } catch (Exception e) {
-            
-            System.out.println("Parser threw exception. Errors:");
-            
-            for ( Error error : parser.getErrors() ) {
-                System.out.println("    " + error);
-            }
-            
-            System.out.println("Will now throw from compiler as well.");
-            
-            throw e;
-            
-        }
+        // Finner errors i source-programmet
+        errors.addAll(parser.getErrors());
+        errors.addAll(environment.getErrors());
         
-        if ( parser.wasErroneous() ) {
-            
-            for ( Error error : parser.getErrors() ) {
-                System.out.println(error);
-            }
-            
+        // Ferdig dersom executable ikke skal genereres
+        if ( !generateExecutable ) {
             return;
-            
-        } else {
-            
-            for ( Statement statement : parser.getStatements() ) {
-                System.out.println(statement);
-            }
-            
         }
         
-        List<Statement> program = parser.getStatements();
-        
-        for ( Statement statement : program ) {
-            statement.bind_names(environment);
-        }
-        
+        // Sett opp liste for executable
         InstructionList executable = new InstructionList();
+        generateExecutable(program, executable);
         
-        for ( Statement statement : program ) {
-            
-            InstructionList newInstructions = statement.generateInstructions(environment);
-            executable.add(newInstructions);
-            
-        }
-        
-        executable.add(0, null); // End program;
+        // Assign to this object's executable property
         this.executable = executable;
         
     }
@@ -136,60 +111,37 @@ public class Compiler {
         
     }
     
-    public static void main(String[] args) {
+    public List<Token> getSyntaxHighlightableTokens(String source) {
         
-        Compiler compiler = new Compiler();
+        List<Token> tokens;
         
-        compiler.compile(
-            
-            "  int limit = 500;"
-            +   "\nint number = 3;"
-            +   "\nint* primes = alloc(100);"
-            +   "\nheap(primes + 0) = 2;"
-            +   "\nint count = 1;"
-            +   "\nwhile ( number < limit ) {"
-            +   "\n    int isPrime = 1;"
-            +   "\n    int fIndex = 0;"
-            +   "\n    while ( fIndex < count ) {"
-            +   "\n        int remainder = number % heap ( primes + fIndex );"
-            +   "\n        fIndex = fIndex + 1;"
-            +   "\n        if ( remainder == 0 ) {"
-            +   "\n            isPrime = 0;"
-            +   "\n        }"
-            +   "\n     }"
-            +   "\n     if ( isPrime ) {"
-            +   "\n         heap(primes + count) = number;"
-            +   "\n         count = count + 1;"
-            +   "\n     }"
-            +   "\n     number = number + 2;"
-            +   "\n}"
-        );
+        lexer = new Lexer();
+        lexer.setInput(source);
+        lexer.lex();
+        tokens = lexer.getTokens();
         
-        InstructionList executable = compiler.getExecutable();
+        return tokens;
         
-        if ( executable != null ) {
-            
-            compiler.printExecutable();
-            Runtime runtime = new Runtime(executable, 512, 512);
-            
-            try {
-                Runtime.printDebugInfo = false;
-                runtime.run();
-            } catch (VMException e) {
-                System.out.println("VM Runtime exception (" + e.getLocalizedMessage() + "). Stack trace:");
-                e.printStackTrace();
-                return;
-            } catch (Exception e) {
-                System.out.println("Other exception. Stack trace:");
-                e.printStackTrace();
-                return;
-            }
-            
-            System.out.println(runtime);
-            
+    }
+    
+    public List<Error> getErrors() {
+        return new ArrayList<Error>(errors);
+    }
+    
+    private void bindNames(List<Statement> program) {
+        for ( Statement statement : program ) {
+            statement.bind_names(environment);
+        }
+    }
+    
+    private void generateExecutable(List<Statement> program, InstructionList executable) {
+        
+        for ( Statement statement : program ) {
+            InstructionList newInstructions = statement.generateInstructions(environment);
+            executable.add(newInstructions);
         }
         
-        System.out.println("Ended main()\n");
+        executable.add(0, null); // End program;
         
     }
     

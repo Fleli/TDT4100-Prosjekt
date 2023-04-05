@@ -7,6 +7,13 @@ Fredag      31. mars    Utvidet runtime med endel debug-metoder + skrev conditio
     Parser (Conditional (if, else if ), Expression (alloc)), Name binding (scope push & pop)
     ~ 4 timer       ± 1
 
-Lørdag      01. april   Utvidet compileren med mye heap-funksjonalitet + while
-    Parser (HeapAssignment, Expression(heap))
+Lørdag      01. april   Utvidet compileren med mye heap-funksjonalitet + while. Dessuten gjort stor-innføring av debug-info
+    Parser (HeapAssignment, Expression(heap), While), Debug: Instruksjoner genereres sammen med tilhørende Statement
+    ~ 8 timer       ± 2
+    
+Søndag      02. april   Satt opp grunnklasser og -konsepter for UI-bruken.
+    UIElements (Node, Button, Point, Size, Action), Views (UIView, ViewMenu, ViewNewFile)
+    ~ 4 timer       ± 1
+    
+Mandag      03. april   
     

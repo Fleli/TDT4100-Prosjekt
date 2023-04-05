@@ -5,6 +5,9 @@ import java.util.List;
 
 import Project.Compiler.Parser.StatementTypes.Declaration;
 
+import Project.Compiler.Compiler.Error;
+import Project.Compiler.Lexer.Token;
+
 /**
  * Temporarily just works as wrapper class for Scope. However, once scopes
  * actually become relevant (when functions are supported), the Environment
@@ -16,11 +19,21 @@ public class Environment {
     
     private List<Scope> scopes = new ArrayList<Scope>();
     
+    private List<Error> errors = new ArrayList<Error>();
+    
     
     public Environment() {
-        scopes.add ( new Scope(1) );
+        scopes.add ( new Scope(1, this) );
     }
     
+    
+    public void submitError(Error error) {
+        this.errors.add(error);
+    }
+    
+    public List<Error> getErrors() {
+        return errors;
+    }
     
     private Scope local() {
         return scopes.get ( scopes.size() - 1 );
@@ -35,7 +48,7 @@ public class Environment {
         
         int currentOffset = local().getOffset();
         
-        scopes.add( new Scope ( currentOffset ) );
+        scopes.add( new Scope(currentOffset, this) );
         
     }
     
@@ -65,37 +78,37 @@ public class Environment {
         
     }
     
-    public int getLocalIndex ( String name ) {
+    public int getLocalIndex(String name, Token referenceToken) {
         
         for ( int index = scopes.size() - 1 ; index >= 0 ; index-- ) {
             
             Scope scope = scopes.get(index);
             
             if ( scope.variableExists(name) ) {
-                
-                if ( scope.getLocalIndex(name) == 0 ) {
-                    System.out.println("(in getLocalIndex) Local index of " + name + " is 0.");
-                    System.exit(1);
-                }
-                
-                return scope.getLocalIndex(name);
-                
+                return scope.getLocalIndex(name, referenceToken);
             }
             
         }
         
-        throw new IllegalArgumentException("Variable " + name + " is not defined.");
+        submitError( new Error(
+            "This context does not define the variable " + name,
+            referenceToken
+        ));
+        return 0;
         
     }
     
-    public int bind_and_get_local_index ( String name ) {
+    public int bind_and_get_local_index(String name, Token referenceToken) {
         
         if ( !variableExists(name) ) {
-            // TODO: Bedre error handling enn exceptions.
-            throw new IllegalStateException("The variable " + name + " is not defined");
+            submitError( new Error(
+                "The variable " + name + " is not defined in this context.", 
+                referenceToken
+            ) );
+            return 0;
         }
         
-        int localIndex = getLocalIndex(name);
+        int localIndex = getLocalIndex(name, referenceToken);
         
         if ( localIndex == 0 ) {
             System.out.println("Local index of " + name + " is 0");

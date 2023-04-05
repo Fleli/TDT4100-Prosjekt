@@ -55,8 +55,7 @@ public class ExpressionParser {
         
         if ( parser.inputIsExhausted() ) {
             parser.submitErrorOnCurrentLine("Expected value but found end of file.");
-            throw new IllegalStateException("Expected value");
-            // TODO: Fix this so that the Compiler doesn't throw
+            return null;
         }
         
         if ( level > max ) {
@@ -168,10 +167,11 @@ public class ExpressionParser {
     private Expression parseSymbolReference() {
         
         String reference = parser.token().content();
+        Token referenceToken = parser.token();
         
         parser.incrementIndex();
         
-        return new Expression(reference);
+        return new Expression(reference, referenceToken);
         
     }
     

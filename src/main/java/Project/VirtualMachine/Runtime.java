@@ -6,9 +6,9 @@ import java.util.List;
 import java.util.function.BinaryOperator;
 import java.util.function.UnaryOperator;
 
+import Project.Console;
 import Project.Compiler.InstructionGeneration.Instruction;
 import Project.Compiler.InstructionGeneration.InstructionList;
-import Project.IDE.IDE;
 import Project.VirtualMachine.Heap.VMHeap;
 
 public class Runtime {
@@ -22,7 +22,7 @@ public class Runtime {
     
     private VMInstructionMemory instructionMemory;
     
-    private IDE ide;
+    private Console console;
     
     private VMHeap heap;
     private VMStack stack;
@@ -31,8 +31,9 @@ public class Runtime {
     
     public static boolean printDebugInfo = false;
     
-    public Runtime ( InstructionList instructions , int requiredStack , int requiredHeap ) {
+    public Runtime ( InstructionList instructions , int requiredStack , int requiredHeap , Console console ) {
         
+        this.console = console;
         this.instructionMemory = new VMInstructionMemory(instructions);
         
         heap = new VMHeap(requiredHeap);
@@ -185,7 +186,7 @@ public class Runtime {
             
         }
         
-        ide.print ( output.toString() );
+        console.print(output.toString());
         
     }
     
