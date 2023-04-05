@@ -4,6 +4,8 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
+import Project.Compiler.Compiler.Error;
+
 public class Lexer {
     
     private final static List<String> keywords = new ArrayList<String>( Arrays.asList( 
@@ -21,8 +23,6 @@ public class Lexer {
     private final static String identifierChars = "_abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789";
     private final static String intLiteralChars = "0123456789";
     
-    private final static String allowedInput = identifierChars + initCtrl + initOp + "# \n";
-    
     private int index = 0;
     
     private int line = 1; // line, starts at 1
@@ -30,26 +30,24 @@ public class Lexer {
     
     private String text;
     private List<Token> tokens;
+    private List<Error> errors;
     
     /**
      * Updates the {@code Lexer} object's {@code text} property so that {@code lex()} can be called later on, using the passed-in {@code String} object.
      * @param input The {@code String} object containing the source code of the program to be lexed.
      * @throws IllegalArgumentException Throws if the passed-in text contains illegal characters, see {@code Lexer.allowedInput} for legal characters.
      */
-    public void setInput(String input) throws IllegalArgumentException {
-        
-        int fIndex = 0;
-        
-        for ( char c : input.toCharArray() ) {
-            fIndex++;
-            if ( allowedInput.indexOf(c) == -1 ) {
-                System.out.println("Happened at " + fIndex);
-                throw new IllegalArgumentException("Character '" + c + "', " + Character.getNumericValue(c) + ", is not allowed.");
-            }
-        }
-        
+    public void setInput(String input) {
         text = input;
-        
+    }
+    
+    private void submitError(String message, Token errorToken) {
+        Error newError = new Error(message, errorToken);
+        errors.add(newError);
+    }
+    
+    public List<Error> getErrors() {
+        return errors;
     }
     
     public void lex() {
@@ -61,6 +59,7 @@ public class Lexer {
         col = 0;
         
         tokens = new ArrayList<Token>();
+        errors = new ArrayList<Error>();
         
         while ( index < text.length() ) {
             
@@ -81,8 +80,10 @@ public class Lexer {
                 newLine();
             } else if ( c == '#' ) {
                 lex_comment();
+            } else if ( c == '"' ) {
+                lex_stringLiteral();
             } else {
-                throw new IllegalStateException("Unidentified character '" + c + "' should have been caught earlier.");
+                recover_from_illegal_char();
             }
             
         }
@@ -104,6 +105,12 @@ public class Lexer {
     private void incrementIndex() {
         index++;
         col++;
+    }
+    
+    private void recover_from_illegal_char() {
+        Token token = new Token("error", line, col);
+        appendAndIncrement(token);
+        tokens.add(token);
     }
     
     /**
@@ -202,6 +209,25 @@ public class Lexer {
         Token token = new Token("comment", line, col);
         while ( index < text.length()  &&  !currentIsIn("\n") ) appendAndIncrement(token);
         tokens.add(token);
+    }
+    
+    private void lex_stringLiteral() {
+        
+        Token token = new Token("stringLiteral", line, col);
+        appendAndIncrement(token);
+        
+        while ( index < text.length()  &&  !currentIsIn("\"\n") ) {
+            appendAndIncrement(token);
+        }
+        
+        if ( index >= text.length() ) {
+            submitError("Expected '\"' before end of line to terminate string literal.", token);
+        } else {
+            appendAndIncrement(token);
+        }
+        
+        tokens.add(token);
+        
     }
     
 }

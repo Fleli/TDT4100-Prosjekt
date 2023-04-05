@@ -82,15 +82,25 @@ public class Expression implements Statement {
     @Override
     public void bind_names(Environment environment) {
         
+        // TODO: Sjekk at error faktisk er submitted dersom noe er null, og ikke burde være det
+        
         if ( type.equals("reference") ) {
             
             localIndex = environment.bind_and_get_local_index(reference, referenceToken);
             
         } else if ( type.equals("unary") || type.equals("alloc")  ||  type.equals("heapAccess") ) {
             
+            if ( arg1 == null ) {
+                return;
+            }
+            
             arg1.bind_names(environment);
             
         } else if ( type.equals("binary") ) {
+            
+            if ( arg1 == null  ||  arg2 == null ) {
+                return;
+            }
             
             arg1.bind_names(environment);
             arg2.bind_names(environment);

@@ -55,7 +55,7 @@ public class Operator {
         } else if ( position.equals("prefix")  ||  position.equals("postfix") ) {
             return unaryOperators.indexOf(syntax) + 22;
         } else {
-            throw new IllegalStateException("No such operation " + syntax + " specified as part of VM hardware.");
+            throw new IllegalStateException("No such operation " + syntax + " exists in VM 'hardware' specification.");
         }
         
     }

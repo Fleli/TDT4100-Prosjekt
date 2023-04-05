@@ -75,6 +75,7 @@ public class ExpressionParser {
                 node = parseHeapAccess();
             } else {
                 parser.submitErrorOnToken("expression");
+                incrementIndex();
             }
             
             return node;

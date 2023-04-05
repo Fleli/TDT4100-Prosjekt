@@ -75,7 +75,7 @@ public class Parser {
     }
     
     public void submitErrorOnToken(String expected) {
-        Error newError = new Error("Expected " + expected + " but found " + tokens.get(index).content(), tokens.get(index));
+        Error newError = new Error("Expected " + expected + " but found '" + tokens.get(index).content() + "'", tokens.get(index));
         errors.add(newError);
     }
     
@@ -171,6 +171,10 @@ public class Parser {
                     statements.add(loop);
                 }
                 
+            } else if ( token.typeIs(";") ) {
+                
+                incrementIndex();
+                
             }
             
             else {
@@ -228,8 +232,13 @@ public class Parser {
             incrementIndex();
         }
         
-        if ( inputIsExhausted()  ||  !tokens.get(index).typeIs("identifier") ) {
+        if ( inputIsExhausted() ) {
             submitErrorOnCurrentLine("Expected name of variable.");
+            return null;
+        }
+        
+        if ( !tokens.get(index).typeIs("identifier") ) {
+            submitErrorOnToken("name of variable");
             return null;
         }
         

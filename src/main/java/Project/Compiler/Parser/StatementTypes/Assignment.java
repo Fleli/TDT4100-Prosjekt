@@ -53,7 +53,7 @@ public class Assignment implements Statement {
         rhs.bind_names(environment);
         
     }
-
+    
     @Override
     public InstructionList generateInstructions(Environment environment) {
         
@@ -63,8 +63,8 @@ public class Assignment implements Statement {
         
         // Resultat ligger nå øverst på stack, så vi popper og skriver til framePointer + localIndex
         
-        instructions.add ( 30 , this );                 // Pop from stack (result of expression)
-        instructions.add ( localIndexOfLhs , this );    // Write to local index, the offset from local frame pointer
+        instructions.add(30, this);                     // Pop from stack (result of expression)
+        instructions.add(localIndexOfLhs, this);        // Write to local index, the offset from local frame pointer
         
         return instructions;
         

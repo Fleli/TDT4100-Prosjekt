@@ -19,7 +19,7 @@ public class ViewIDEConsole extends UINode implements Console {
         
         super();
         
-        double height = ViewIDEMenuElements.consoleHeight;
+        double height = ViewIDE.consoleHeight;
         
         background = new Rectangle(width, height);
         background.setFill(Color.rgb(50, 75, 75));

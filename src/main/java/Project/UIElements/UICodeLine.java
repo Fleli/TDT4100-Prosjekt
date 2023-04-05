@@ -86,8 +86,7 @@ public class UICodeLine extends UITextField {
         
         if ( code == KeyCode.ENTER ) {
             
-            UICodeLine newLine = new UICodeLine(fontSize, ide, width);
-            insertLineBelow(newLine);
+            didPressEnter();
             
         } else if ( code == KeyCode.LEFT  &&  isLeft()  &&  line_above != null ) {
             
@@ -313,6 +312,11 @@ public class UICodeLine extends UITextField {
             line_below.clearErrors();
         }
         
+    }
+    
+    public void didPressEnter() {
+        UICodeLine newLine = new UICodeLine(fontSize, ide, width);
+        insertLineBelow(newLine);
     }
     
 }
