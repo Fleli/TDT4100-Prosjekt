@@ -14,6 +14,7 @@ import Project.UIElements.UINode;
 import Project.UIElements.UISize;
 import Project.Views.UIView;
 import Project.VirtualMachine.Runtime;
+import Project.VirtualMachine.VMException;
 import javafx.geometry.Point2D;
 import javafx.scene.image.Image;
 import javafx.scene.input.Clipboard;
@@ -28,7 +29,7 @@ public class ViewIDE extends UIView {
     public static final double topLineHeight = 100;
     public static final double consoleHeight = 200;
     
-    private static double preferred_fontSize = 16;
+    private static double preferred_fontSize = 15;
     
     private static double codeLineTranslateX = 0;
     private static double codeLineWidth = 1000;
@@ -127,8 +128,6 @@ public class ViewIDE extends UIView {
         
         activeLine = newActive;
         activeLine.activate();
-        
-        System.out.println(activeLine.getLineNumber());
         
     }
     
@@ -254,7 +253,15 @@ public class ViewIDE extends UIView {
     
     @Override
     public void afterKeyDown() {
+        
+        long start = System.currentTimeMillis();
+        
         compileAndShowErrorMessages();
+        
+        long end = System.currentTimeMillis();
+        
+        System.out.println("Compile-time: " + (end - start) + " millis.");
+        
         super.afterKeyDown();
     }
     
@@ -262,53 +269,51 @@ public class ViewIDE extends UIView {
         
         String sourceCode = topLine.recursivelyFetchSourceCode();
         
-        System.out.println("Will compile and run with source code:\n" + sourceCode);
+        compiler = new Compiler();
+        compiler.compile(sourceCode, true);
+        
+        Runtime runtime = new Runtime( compiler.getExecutable() , 256, 256 , console);
         
         try {
             
-            compiler = new Compiler();
-            compiler.compile(sourceCode, true);
-            
-            System.out.println("Successful: " + compiler.getExecutable());
-            
-            Runtime runtime = new Runtime( compiler.getExecutable() , 256, 256 , console);
-            
             runtime.run();
-            runtime.printStack();
-            runtime.printHeap();
-        
-        } catch (Exception e) {
             
-            System.out.println("Compile-time exception:");
-            System.out.println(e);
+        } catch (VMException exception) {
+            
+            // TODO: Handle VMException
             
         }
         
+        
+        runtime.printStack();
+        runtime.printHeap();
+    
     }
     
     private void compileAndShowErrorMessages() {
         
         String sourceCode = topLine.recursivelyFetchSourceCode();
         
+        long start_fetch = System.currentTimeMillis();
+        
         topLine.clearErrors();
         
-        System.out.println("Will compile (and show error messages) with source code:\n" + sourceCode);
+        long end_fetch = System.currentTimeMillis();
+        
+        System.out.println("\nFetching and cleaning took: " + (end_fetch - start_fetch) + " millis.");
         
         try {
-                
+            
             compiler = new Compiler();
             compiler.compile(sourceCode, false);
             
         } catch (Exception e) {
             
-            System.out.println("\n\n---Try block failed.---\n\n\n");
             throw e;
             
         }
         
-        System.out.println("Errors:");
         for ( Error error : compiler.getErrors() ) {
-            System.out.println(error);
             topLine.pushDownError(error);
         }
         

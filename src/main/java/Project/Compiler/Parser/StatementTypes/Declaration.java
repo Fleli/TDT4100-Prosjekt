@@ -76,10 +76,6 @@ public class Declaration implements Statement {
         
         this.nameToken = nameToken;
         
-        if ( name == "remainder" ) {
-            System.out.println ( "\n\n\n" + assignment.description() + "\n\n\n" );
-        }
-        
     }
     
     public String getName() {

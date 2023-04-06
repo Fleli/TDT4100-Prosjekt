@@ -28,7 +28,11 @@ public class UICodeLine extends UITextField {
     
     private int lineNumber;
     
+    // Red, green, blue when the line is inactive
     private int r, g, b;
+    
+    // Red, green, blue when the line is active
+    private int ra, ga, ba;
     
     public UICodeLine(double fontSize, ViewIDE ide, double width ) {
         
@@ -48,18 +52,19 @@ public class UICodeLine extends UITextField {
         setMainLabelTranslationY(0);
         setMainLabelFont( new Font("Courier New", fontSize) );
         
-        System.out.println("@GENERATE: " + fontSize);
-        
         r = 25;
         g = 30;
         b = 50;
         
-        setFill(r, g, b);
+        ra = r + 20;
+        ga = g + 20;
+        ba = b + 20;
         
         errorNode = new UICodeErrorNode(width, fontSize, codeLineSpacing);
         addChild(errorNode);
         
         refreshUI();
+        setCorrectFill();
         
     }
     
@@ -71,6 +76,8 @@ public class UICodeLine extends UITextField {
         if ( isActive() ) {
             ide.setActiveLine(this);
         }
+        
+        setCorrectFill();
         
     }
     
@@ -118,7 +125,9 @@ public class UICodeLine extends UITextField {
             
         }
         
+        refreshUI();
         refreshSyntaxHighlighting();
+        setCorrectFill();
         
     }
     
@@ -136,15 +145,17 @@ public class UICodeLine extends UITextField {
             throw new IllegalStateException("New below cannot be null");
         }
         
+        String textRightOfCursor = removeAndReturnTextRightOfCursor();
+        
         UICodeLine oldBelow = line_below;
         
         removeLineBelow();
         
-        String textRightOfCursor = removeAndReturnTextRightOfCursor();
-        
         setLineBelow(newBelow);
         
-        newBelow.setTextAndCursorIndex(textRightOfCursor, 0);
+        newBelow.requestCursorIndex(0);
+        newBelow.writeText(textRightOfCursor);
+        newBelow.requestCursorIndex(0);
         
         if ( oldBelow != null ) {
             newBelow.setLineBelow(oldBelow);
@@ -159,15 +170,18 @@ public class UICodeLine extends UITextField {
     
     public void removeThisLine() {
         
+        /**
+         * TODO: Ordne slik at denne fungerer riktig. Prøv å gå gjennom kronologisk for å se hva som egentlig skjer. For trøtt nå
+         */
+        
         if ( line_above == null ) {
             return;
         }
         
         String textAtRight = removeAndReturnTextRightOfCursor();
         
-        deactivate();
+        ide.setActiveLine(line_above);
         
-        line_above.activate();
         line_above.moveFarRight();
         line_above.writeText(textAtRight);
         
@@ -176,9 +190,10 @@ public class UICodeLine extends UITextField {
         
         line_above_this.removeLineBelow();
         
-        if ( line_below != null ) {
+        if ( line_below_this != null ) {
             removeLineBelow();
-            line_above_this.insertLineBelow(line_below_this);
+            line_above_this.moveFarRight();
+            line_above_this.setLineBelow(line_below_this);
             line_below_this.setLineNumber(lineNumber);
         }
         
@@ -280,7 +295,6 @@ public class UICodeLine extends UITextField {
             
         }
         
-        System.out.println("Returning " + sourceCode.toString());
         return sourceCode.toString();
         
     }
@@ -305,8 +319,18 @@ public class UICodeLine extends UITextField {
     
     public void clearErrors() {
         
-        setFill(r, g, b);
-        errorNode.clearErrors();
+        //setCorrectFill();
+        
+        if ( !errorNode.isEmpty() ) {
+                
+            if ( errorNode != null ) {
+                removeChild(errorNode);
+            }
+                
+            errorNode = new UICodeErrorNode(width, fontSize, codeLineSpacing);
+            addChild(errorNode);
+            
+        }
         
         if ( line_below != null ) {
             line_below.clearErrors();
@@ -317,6 +341,36 @@ public class UICodeLine extends UITextField {
     public void didPressEnter() {
         UICodeLine newLine = new UICodeLine(fontSize, ide, width);
         insertLineBelow(newLine);
+    }
+    
+    public void setCorrectFill() {
+        
+        int r, g, b;
+        
+        if ( isActive() ) {
+            r = ra;
+            g = ga;
+            b = ba;
+        } else {
+            r = this.r;
+            g = this.g;
+            b = this.b;
+        }
+        
+        setFill(r, g, b);
+        
+    }
+    
+    @Override
+    public void activate() {
+        super.activate();
+        setCorrectFill();
+    }
+    
+    @Override
+    public void deactivate() {
+        super.deactivate();
+        setCorrectFill();
     }
     
 }

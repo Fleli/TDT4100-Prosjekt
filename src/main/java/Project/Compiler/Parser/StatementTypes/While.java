@@ -80,8 +80,6 @@ public class While implements Statement {
         bodyInstructions.add(34, this);                         // ADJUSTSP instruction
         bodyInstructions.add(-numberOfDeclarations, this);      // For each declaration, adjust by -1
         
-        System.out.println("\n\nNUMBER OF DECLARATIONS IN WHILE: " + numberOfDeclarations + "\n\n");
-        
         // Now we know how big the body of the while statement is. However, in 
         // order to exit the body and reevaluate the while statement's condition,
         // we need to adjust the program counter back to *before* condition evaluation

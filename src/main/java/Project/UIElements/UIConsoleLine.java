@@ -57,7 +57,6 @@ public class UIConsoleLine extends UINode {
         }
         
         label.setText(this.text.toString());
-        System.out.println("didSetText " + this.text.toString());
         
         if ( index < text.length() ) {
             newLine();

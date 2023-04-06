@@ -17,8 +17,6 @@ public class UILabel extends UINode {
         
         this.fontSize = fontSize;
         
-        System.out.println("UILabel. " + fontSize);
-        
     }
     
     public void addAttributedText(String text, Color color, int col, String special) {

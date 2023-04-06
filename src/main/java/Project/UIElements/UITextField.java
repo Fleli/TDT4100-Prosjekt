@@ -42,7 +42,8 @@ public class UITextField extends UIButton {
         super.mouseDown(location);
         
         if ( isActive ) {
-            // Regn ut char-offset og juster cursor index deretter
+            int newCursorIndex = convertXToCursorIndex(location.getX());
+            requestCursorIndex(newCursorIndex);
         }
         
     }
@@ -99,7 +100,7 @@ public class UITextField extends UIButton {
         
         this.defaultText = defaultText;
         
-        cursor.setTranslateY ( getMainLabelTranslateY() );
+        cursor.setTranslateY ( getMainLabelTranslateY() + 2 );
         getChildren().add(cursor);
         
         setMainLabelFont( new Font("Courier New", fontSize) );
@@ -232,7 +233,7 @@ public class UITextField extends UIButton {
         
         getChildren().add(cursor);
         
-        cursor.setTranslateY ( getMainLabelTranslateY() );
+        cursor.setTranslateY ( getMainLabelTranslateY() + 2 );
         
     }
     
@@ -257,7 +258,7 @@ public class UITextField extends UIButton {
         
         int oldCursor = cursorIndex;
         
-        cursorIndex = stringBuilder.length();
+        moveFarRight();
         
         while ( cursorIndex > oldCursor ) {
             singleBackspace();
@@ -345,6 +346,17 @@ public class UITextField extends UIButton {
     
     public String getText() {
         return stringBuilder.toString();
+    }
+    
+    private int convertXToCursorIndex(double x) {
+        
+        double translationAdjusted = x - getMainLabelTranslateX();
+        double index_nonInt = translationAdjusted / ( fontSize * 0.6 );
+        
+        double index = Math.round(index_nonInt);
+        
+        return (int) index;
+        
     }
     
 }

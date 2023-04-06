@@ -20,8 +20,6 @@ public class UIButton extends UINode {
     private UIAction action_inside;
     private UIAction action_outside;
     
-    private int r, g, b;
-    
     private ImageView imgView;
     
     @Override
@@ -63,9 +61,10 @@ public class UIButton extends UINode {
     
     public void setFill ( int red , int green , int blue ) {
         rectangle.setFill( Color.rgb(red, green, blue) );
-        r = red;
-        g = green;
-        b = blue;
+    }
+    
+    public void setTransparent() {
+        rectangle.setFill(Color.TRANSPARENT);
     }
     
     public void setText ( String text ) {
@@ -95,13 +94,6 @@ public class UIButton extends UINode {
     
     public void setActionOutside ( UIAction action_outside ) {
         this.action_outside = action_outside;
-    }
-    
-    public void flipColor() {
-        r = 255 - r;
-        g = 255 - g;
-        b = 255 - b;
-        setFill(r, g, b);
     }
     
     public void setSubLabelText ( String text ) {
@@ -152,6 +144,7 @@ public class UIButton extends UINode {
         }
         
         imgView = new ImageView(img);
+        imgView.setStyle("-fx-background-color: blue;");
         getChildren().add(imgView);
         
     }

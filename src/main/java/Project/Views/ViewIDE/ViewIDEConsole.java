@@ -34,7 +34,7 @@ public class ViewIDEConsole extends UINode implements Console {
     public void print(String text) {
         currentLine.print(text);
     }
-
+    
     @Override
     public void clear() {
         

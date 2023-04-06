@@ -64,11 +64,11 @@ public class ViewMenu extends UIView {
         });
         
         btn_openFile.setActionInside( () -> {
-            btn_openFile.flipColor();
+            //btn_openFile.flipColor();
         });
         
         btn_settings.setActionInside( () -> {
-            btn_settings.flipColor();
+            //btn_settings.flipColor();
         });
         
         imgView_logo.setTranslateX(fromLeftEdge + buttonSize.width / 2 - logoWithAndHeight / 2);

@@ -63,8 +63,6 @@ public class Parser {
             
             if ( token.type() != "comment" ) {
                 this.tokens.add(token);
-            } else {
-                System.out.println("Parser threw out comment-token " + token);
             }
             
         }
@@ -178,7 +176,7 @@ public class Parser {
             }
             
             else {
-                submitErrorOnToken("statement (at " + index + ")");
+                submitErrorOnToken("statement");
                 // lag en form for error recovery her, for eksempel panikk frem til semikolon e.l.
                 // merk også at denne delen ikke er ferdig. I stedet for bare if-else vil det komme
                 // if-else if-...-else for å støtte flere statements.
