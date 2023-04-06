@@ -1,7 +1,9 @@
 package Project;
 
-import Project.FileSystem.File;
-import Project.FileSystem.FileManager;
+// git ls-files | grep java |  xargs wc -l
+// for å finne antall linjer med .java-extension
+
+import Project.Documents.Document;
 import Project.UIElements.UINode;
 import Project.UIElements.UISize;
 import Project.Views.ViewMenu;
@@ -24,8 +26,6 @@ public class Program extends Application {
     private Scene scene;
     
     private UINode activeView;
-    
-    private FileManager files = new FileManager();
     
     // ...
     
@@ -98,13 +98,9 @@ public class Program extends Application {
         
     }
     
-    public void beginEditing ( File file ) {
+    public void beginEditing ( Document file ) {
         ViewIDE viewIDE = new ViewIDE(viewSize, file);
         setView(viewIDE);
-    }
-    
-    public FileManager getFileManager() {
-        return files;
     }
     
 }

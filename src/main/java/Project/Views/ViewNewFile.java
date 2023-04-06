@@ -1,7 +1,8 @@
 package Project.Views;
 
 import Project.Program;
-import Project.FileSystem.File;
+import Project.Documents.Document;
+import Project.FileInterface.FileInterface;
 import Project.UIElements.UIButton;
 import Project.UIElements.UISize;
 import Project.UIElements.UITextField;
@@ -53,9 +54,25 @@ public class ViewNewFile extends UIView {
         });
         
         button_moveToEditor.setActionInside( () -> {
-            File newFile = new File("someNewFile", "f");
-            mainProgram().getFileManager().addFile(newFile);
-            mainProgram().beginEditing(newFile);
+            
+            try {
+                
+                String fileName = textField_programName.getText();
+                
+                FileInterface.createFileNamed(
+                    fileName, "f",
+                    textField_author.getText()
+                );
+                
+                Document newDocument = FileInterface.getDocument(fileName, "f");
+                mainProgram.beginEditing(newDocument);
+                
+            } catch (Exception e) {
+                
+                System.out.println("Caught error " + e.getMessage());
+                
+            }
+            
         });
         
         getChildren().addAll ( textField_programName , textField_author , button_returnToMenu , button_moveToEditor );

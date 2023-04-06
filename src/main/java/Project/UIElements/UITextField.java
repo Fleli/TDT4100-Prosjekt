@@ -207,9 +207,13 @@ public class UITextField extends UIButton {
         }
     }
     
-    private void singleLeft() {
-        cursorIndex = Math.max(0, cursorIndex - 1);
+    public void moveLeft(int left) {
+        cursorIndex = Math.max(0, cursorIndex - left);
         refreshUI();
+    }
+    
+    private void singleLeft() {
+        moveLeft(1);
     }
     
     private void handleKeyRight ( KeyEvent event ) {
@@ -220,9 +224,13 @@ public class UITextField extends UIButton {
         }
     }
     
-    private void singleRight() {
-        cursorIndex = Math.min(stringBuilder.length(), cursorIndex + 1);
+    public void right(int right) {
+        cursorIndex = Math.min(stringBuilder.length(), cursorIndex + right);
         refreshUI();
+    }
+    
+    private void singleRight() {
+        right(1);
     }
     
     private void resizeCursor() {

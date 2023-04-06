@@ -1,8 +1,10 @@
 package Project.Views;
 
 import Project.Program;
+import Project.FileInterface.FileInterface;
 import Project.UIElements.UIButton;
 import Project.UIElements.UISize;
+import Project.Views.ViewOpenFile.ViewOpenFile;
 import javafx.geometry.Point2D;
 import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
@@ -64,7 +66,13 @@ public class ViewMenu extends UIView {
         });
         
         btn_openFile.setActionInside( () -> {
-            //btn_openFile.flipColor();
+            
+            try {
+                viewTransition( new ViewOpenFile(size, FileInterface.getAllDocuments(), mainProgram) );
+            } catch (Exception e) {
+                System.out.println(e);
+            }
+            
         });
         
         btn_settings.setActionInside( () -> {

@@ -13,6 +13,9 @@ public class UICodeLine extends UITextField {
     
     public static final double codeLineSpacing = 6;
     
+    private int indentation = 0;
+    private int netLeftBraces = 0;
+    
     private ViewIDE ide;
     
     private double width;
@@ -34,9 +37,9 @@ public class UICodeLine extends UITextField {
     // Red, green, blue when the line is active
     private int ra, ga, ba;
     
-    public UICodeLine(double fontSize, ViewIDE ide, double width ) {
+    public UICodeLine(double fontSize, ViewIDE ide, double width, int indentation ) {
         
-        super ( new Point2D(0, fontSize + codeLineSpacing) , new UISize(width, fontSize + codeLineSpacing), "");
+        super( new Point2D(0, fontSize + codeLineSpacing) , new UISize(width, fontSize + codeLineSpacing), "" );
         
         this.ide = ide;
         this.width = width;
@@ -47,6 +50,8 @@ public class UICodeLine extends UITextField {
         lineNumberLabel.setTextFill(Color.WHITE);
         lineNumberLabel.setTranslateX(3);
         getChildren().add(lineNumberLabel);
+        
+        this.indentation = indentation;
         
         setMainLabelTranslationX(30);
         setMainLabelTranslationY(0);
@@ -63,9 +68,25 @@ public class UICodeLine extends UITextField {
         errorNode = new UICodeErrorNode(width, fontSize, codeLineSpacing);
         addChild(errorNode);
         
+        if (ide.linesShouldIndentAtCreation()) {
+                
+            for ( int i = 0 ; i < indentation ; i++ ) {
+                writeText("    ");
+            }
+        
+        }
+            
         refreshUI();
         setCorrectFill();
         
+    }
+    
+    public int getIndentation() {
+        return indentation;
+    }
+    
+    public void setIndentation(int indentation) {
+        this.indentation = indentation;
     }
     
     @Override
@@ -153,9 +174,7 @@ public class UICodeLine extends UITextField {
         
         setLineBelow(newBelow);
         
-        newBelow.requestCursorIndex(0);
-        newBelow.writeText(textRightOfCursor);
-        newBelow.requestCursorIndex(0);
+        newBelow.writeTextButDoNotAdjustCursor(textRightOfCursor);
         
         if ( oldBelow != null ) {
             newBelow.setLineBelow(oldBelow);
@@ -224,6 +243,9 @@ public class UICodeLine extends UITextField {
         line_below.line_above = this;
         addChild(newBelow);
         
+        int indentation_below = Math.max( 0 , indentation + netLeftBraces );
+        line_below.setIndentation(indentation_below);
+        
     }
     
     public void setLineNumber(int line) {
@@ -276,9 +298,14 @@ public class UICodeLine extends UITextField {
         refreshSyntaxHighlighting();
     }
     
+    public void writeTextButDoNotAdjustCursor(String text) {
+        writeText(text);
+        moveLeft(text.length());
+    }
+    
     private void refreshSyntaxHighlighting() {
         String lineContent = getText();
-        UILabel attributedText = ide.syntaxHighlighted(lineContent);
+        UILabel attributedText = ide.syntaxHighlighted(this, lineContent);
         setAttributedText(attributedText);
     }
     
@@ -319,14 +346,12 @@ public class UICodeLine extends UITextField {
     
     public void clearErrors() {
         
-        //setCorrectFill();
-        
         if ( !errorNode.isEmpty() ) {
-                
+            
             if ( errorNode != null ) {
                 removeChild(errorNode);
             }
-                
+            
             errorNode = new UICodeErrorNode(width, fontSize, codeLineSpacing);
             addChild(errorNode);
             
@@ -339,8 +364,13 @@ public class UICodeLine extends UITextField {
     }
     
     public void didPressEnter() {
-        UICodeLine newLine = new UICodeLine(fontSize, ide, width);
+        
+        int nextIndent = Math.max( 0 , indentation + netLeftBraces );
+        
+        UICodeLine newLine = new UICodeLine(fontSize, ide, width, nextIndent);
+        
         insertLineBelow(newLine);
+        
     }
     
     public void setCorrectFill() {
@@ -371,6 +401,10 @@ public class UICodeLine extends UITextField {
     public void deactivate() {
         super.deactivate();
         setCorrectFill();
+    }
+    
+    public void setNetLeftBraces(int netLeftBraces) {
+        this.netLeftBraces = netLeftBraces;
     }
     
 }

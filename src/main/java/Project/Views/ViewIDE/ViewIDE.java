@@ -6,7 +6,7 @@ import Project.Program;
 import Project.Compiler.Compiler.Compiler;
 import Project.Compiler.Compiler.Error;
 import Project.Compiler.Lexer.Token;
-import Project.FileSystem.File;
+import Project.Documents.Document;
 import Project.UIElements.UIButton;
 import Project.UIElements.UICodeLine;
 import Project.UIElements.UILabel;
@@ -38,7 +38,7 @@ public class ViewIDE extends UIView {
     
     private Compiler compiler;
     
-    private File file;
+    private Document document;
     
     private UICodeLine topLine;
     private UICodeLine activeLine;
@@ -54,13 +54,17 @@ public class ViewIDE extends UIView {
     
     private ViewIDEConsole console;
     
-    public ViewIDE(UISize size, File file) {
+    private boolean linesShouldIndentAtCreation = true;
+    
+    public ViewIDE(UISize size, Document document) {
         
         // TODO: Rens denne konstruktøren, fordi den er ikke pen å lese gjennom
         
         super(size);
         
-        this.file = file;
+        System.out.println("Beginning edit with " + document);
+        
+        this.document = document;
         
         double codeAreaHeight = Program.viewSize.height - topLineHeight - consoleHeight;
         codeBackground = new Rectangle(codeLineWidth, codeAreaHeight);
@@ -68,15 +72,15 @@ public class ViewIDE extends UIView {
         codeBackground.setTranslateY(topLineHeight);
         getChildren().add(codeBackground);
         
-        topLine = new UICodeLine(preferred_fontSize, this, codeLineWidth);
+        topLine = new UICodeLine(preferred_fontSize, this, codeLineWidth, 0);
         topLine.setLineNumber(1);
         topLine.setTranslateX(codeLineTranslateX);
         topLine.setTranslateY(topLineHeight);
         setActiveLine(topLine);
         addChild(topLine);
         
-        String fileName = file.getFileName();
-        String fileExtension = file.getExtension();
+        String fileName = document.getFileName();
+        String fileExtension = document.getExtension();
         
         compiler = new Compiler();
         
@@ -114,10 +118,14 @@ public class ViewIDE extends UIView {
         console.setTranslateY(tY);
         addChild(console);
         
+        linesShouldIndentAtCreation = false;
+        loadDocument();
+        linesShouldIndentAtCreation = true;
+        
     }
     
-    public File getFile() {
-        return file;
+    public Document getDocument() {
+        return document;
     }
     
     public void setActiveLine(UICodeLine newActive) {
@@ -131,17 +139,25 @@ public class ViewIDE extends UIView {
         
     }
     
-    public UILabel syntaxHighlighted(String text) {
+    public UILabel syntaxHighlighted(UICodeLine codeLine, String text) {
         
         UILabel syntaxHighlightedLabel = new UILabel(preferred_fontSize);
         
         List<Token> syntaxHighlightableTokens = compiler.getSyntaxHighlightableTokens(text);
+        
+        int netLeftBraces = 0;
         
         for ( Token token : syntaxHighlightableTokens ) {
             
             String content = token.content();
             String type = token.type();
             int col = token.startColumn();
+            
+            if ( token.typeIs("{") ) {
+                netLeftBraces += 1;
+            } else if ( token.typeIs("}") ) {
+                netLeftBraces -= 1;
+            }
             
             String special = null;
             
@@ -187,6 +203,8 @@ public class ViewIDE extends UIView {
             syntaxHighlightedLabel.addAttributedText(content, color, col, special);
             
         }
+        
+        codeLine.setNetLeftBraces(netLeftBraces);
         
         return syntaxHighlightedLabel;
         
@@ -336,6 +354,30 @@ public class ViewIDE extends UIView {
         
         topLine.setTranslateY(newTY);
         
+    }
+    
+    private void loadDocument() {
+        
+        String content = document.getContent();
+        
+        for ( char c : content.toCharArray() ) {
+            
+            if ( c == '\n' ) {
+                
+                activeLine.didPressEnter();
+                
+            } else {
+                    
+                activeLine.writeText("" + c);
+            
+            }
+                
+        }
+        
+    }
+    
+    public boolean linesShouldIndentAtCreation() {
+        return linesShouldIndentAtCreation;
     }
     
 }
