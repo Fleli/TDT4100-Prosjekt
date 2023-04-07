@@ -14,12 +14,19 @@ public class Document {
     
     private String content;
     
-    public Document(String file) throws IOException {
+    private int fileSize;
+    
+    public Document(String file, long fileSize) throws IOException {
+        
+        // TODO: Sjekk først filformat (bør nok ha en egen funksjon som gjør kun dette). Deretter, basert
+        // på det oppdagede filformatet, kan filen analyseres of et dokument produseres.
+        
+        // Men må aller først definere hvilke filformat som skal støttes, og hvordan disse skal lagres.
         
         String[] split = file.split("\\$");
         
         if ( split.length != 10 ) {
-            throw new IOException("The file is corrupt (does not obey the .f file format)");
+            throw new IOException("The file is corrupt (does not obey the .f file format). Split was " + split.length + ". File was " + file);
         }
         
         extension = split[0];
@@ -38,6 +45,8 @@ public class Document {
         }
         
         content = split[9];
+        
+        this.fileSize = (int) fileSize;
         
     }
     
@@ -81,6 +90,10 @@ public class Document {
         return open_year;
     }
     
+    public int getFileSize() {
+        return fileSize;
+    }
+    
     @Override
     public String toString() {
         if (extension.equals("f")) {
@@ -120,6 +133,40 @@ public class Document {
     
     public String getFileNameWithExtension() {
         return fileName + "." + extension;
+    }
+    
+    public void setContent(String newContent) {
+        content = newContent;
+    }
+    
+    public String getStorableString() {
+        
+        return 
+                    getExtension()
+            + "$" + getFileName()
+            + "$" + getAuthor()
+            + "$" + getCreate_day()
+            + "$" + getCreate_month()
+            + "$" + getCreate_year()
+            + "$" + getOpen_day()
+            + "$" + getOpen_month()
+            + "$" + getOpen_year()
+            + "$" + getContent()
+        ;
+        
+    }
+    
+    public String getTypeDescription() {
+        
+        switch (extension) {
+            case "f":
+                return "f-kildekodefil";
+            case "fmv":
+                return "fvm-utførbar fil";
+            default:
+                return extension + "-fil";
+        }
+        
     }
     
 }

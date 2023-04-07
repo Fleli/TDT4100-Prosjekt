@@ -7,7 +7,7 @@ import Project.Compiler.Compiler.Compiler;
 import Project.Compiler.Compiler.Error;
 import Project.Compiler.Lexer.Token;
 import Project.Documents.Document;
-import Project.UIElements.UIButton;
+import Project.FileInterface.FileInterface;
 import Project.UIElements.UICodeLine;
 import Project.UIElements.UILabel;
 import Project.UIElements.UINode;
@@ -15,19 +15,16 @@ import Project.UIElements.UISize;
 import Project.Views.UIView;
 import Project.VirtualMachine.Runtime;
 import Project.VirtualMachine.VMException;
-import javafx.geometry.Point2D;
-import javafx.scene.image.Image;
 import javafx.scene.input.Clipboard;
 import javafx.scene.input.KeyCode;
 import javafx.scene.input.KeyEvent;
 import javafx.scene.paint.Color;
 import javafx.scene.shape.Rectangle;
-import javafx.scene.text.Text;
 
 public class ViewIDE extends UIView {
     
     public static final double topLineHeight = 100;
-    public static final double consoleHeight = 200;
+    public static final double codeAreaHeight = 700;
     
     private static double preferred_fontSize = 15;
     
@@ -45,16 +42,13 @@ public class ViewIDE extends UIView {
     
     private int numberOfLines = 1;
     
-    private Rectangle upperBand;
+    private IDETopBand upperBand;
+    private Rectangle lowerBand;
     private Rectangle codeBackground;
-    
-    private Text text;
-    
-    private UIButton runButton;
     
     private ViewIDEConsole console;
     
-    private boolean linesShouldIndentAtCreation = true;
+    private boolean notLoading = true;
     
     public ViewIDE(UISize size, Document document) {
         
@@ -62,11 +56,8 @@ public class ViewIDE extends UIView {
         
         super(size);
         
-        System.out.println("Beginning edit with " + document);
-        
         this.document = document;
         
-        double codeAreaHeight = Program.viewSize.height - topLineHeight - consoleHeight;
         codeBackground = new Rectangle(codeLineWidth, codeAreaHeight);
         codeBackground.setFill(Color.rgb(25, 30, 50, 1)); // TODO: Link this color with codeline colors
         codeBackground.setTranslateY(topLineHeight);
@@ -79,48 +70,27 @@ public class ViewIDE extends UIView {
         setActiveLine(topLine);
         addChild(topLine);
         
-        String fileName = document.getFileName();
-        String fileExtension = document.getExtension();
+        double consoleWidth = Program.viewSize.width - codeLineWidth;
+        console = new ViewIDEConsole(consoleWidth, codeAreaHeight);
+        console.setTranslateX(codeLineWidth);
+        console.setTranslateY(topLineHeight);
+        addChild(console);
         
         compiler = new Compiler();
         
-        upperBand = new Rectangle(Program.viewSize.width, topLineHeight);
-        upperBand.setFill(Color.grayRgb(200));
-        upperBand.toFront();
-        getChildren().add(upperBand);
+        Color bandColor = Color.rgb(130, 150, 170);
         
-        text = new Text(fileName + "." + fileExtension);
-        text.setTranslateX(20);
-        text.setTranslateY(20);
-        text.setStyle("-fx-font: bold 20pt \"Courier New\";");
-        text.setFill(Color.grayRgb(40));
-        getChildren().add(text);
+        upperBand = new IDETopBand(this, bandColor, topLineHeight);
+        addChild(upperBand);
         
-        runButton = new UIButton(
-            new Point2D(400, 20), 
-            new UISize(60, 60), 
-            "Compile & run"
-        );
-        runButton.setActionInside( () -> {
-            Runtime.printDebugInfo = true;
-            compileAndRun();
-        });
-        runButton.setMainLabelFontColor(Color.grayRgb(200));
-        runButton.setImage( new Image(
-            "file:TDT4100-prosjekt-frederee/src/main/java/Project/Images/compileAndRun.png",
-            60, 60, true, true
-        ) );
-        addChild(runButton);
+        lowerBand = new Rectangle(Program.viewSize.width, Program.viewSize.height - topLineHeight - codeAreaHeight);
+        lowerBand.setTranslateY(topLineHeight + codeAreaHeight);
+        lowerBand.setFill(bandColor);
+        getChildren().add(lowerBand);
         
-        double tY = Program.viewSize.height - consoleHeight;
-        
-        console = new ViewIDEConsole(codeLineWidth);
-        console.setTranslateY(tY);
-        addChild(console);
-        
-        linesShouldIndentAtCreation = false;
+        notLoading = false;
         loadDocument();
-        linesShouldIndentAtCreation = true;
+        notLoading = true;
         
     }
     
@@ -213,10 +183,12 @@ public class ViewIDE extends UIView {
     @Override
     public void didScroll(double x, double y, double dx, double dy) {
         
-        boolean isInsideX = x > codeLineTranslateX  &&  x < codeLineTranslateX + codeLineWidth;
-        boolean isInsideY = y > topLineHeight  &&  y < Program.viewSize.height - consoleHeight;
+        boolean isInsideX_codeArea = x > codeLineTranslateX  &&  x < codeLineTranslateX + codeLineWidth;
+        boolean isInsideY_codeArea = y > topLineHeight  &&  y < topLineHeight + codeAreaHeight;
         
-        if ( isInsideX  &&  isInsideY ) {
+        boolean isInsideX_console = x > codeLineTranslateX + codeLineWidth;
+        
+        if ( isInsideX_codeArea  &&  isInsideY_codeArea ) {
             
             UINode.ignoreDidScroll = true;
             
@@ -224,6 +196,12 @@ public class ViewIDE extends UIView {
             topLine.setTranslateY(newTY);
             
             placeCodeLinesCorrectly();
+            
+        } else if ( isInsideX_console  &&  isInsideY_codeArea ) {
+            
+            UINode.ignoreDidScroll = true;
+            
+            console.delegatedScroll(dx, dy);
             
         } else {
             
@@ -274,31 +252,35 @@ public class ViewIDE extends UIView {
         
         long start = System.currentTimeMillis();
         
-        compileAndShowErrorMessages();
+        saveAndCompileAndShowErrorMessages();
         
         long end = System.currentTimeMillis();
         
-        System.out.println("Compile-time: " + (end - start) + " millis.");
+        System.out.println("Saving, compilation and error messages took " + (end - start) + " ms.");
+        
         
         super.afterKeyDown();
     }
     
     public void compileAndRun() {
         
+        console.clear();
+        
         String sourceCode = topLine.recursivelyFetchSourceCode();
         
         compiler = new Compiler();
         compiler.compile(sourceCode, true);
         
-        Runtime runtime = new Runtime( compiler.getExecutable() , 256, 256 , console);
+        Runtime runtime = new Runtime( compiler.getExecutable() , 4096, 4096 , console);
         
         try {
             
+            Runtime.printDebugInfo = false;
             runtime.run();
             
         } catch (VMException exception) {
             
-            // TODO: Handle VMException
+            System.out.println("Runtime exception: " + exception.getLocalizedMessage());
             
         }
         
@@ -308,17 +290,13 @@ public class ViewIDE extends UIView {
     
     }
     
-    private void compileAndShowErrorMessages() {
+    private void saveAndCompileAndShowErrorMessages() {
         
         String sourceCode = topLine.recursivelyFetchSourceCode();
         
-        long start_fetch = System.currentTimeMillis();
+        save(sourceCode);
         
         topLine.clearErrors();
-        
-        long end_fetch = System.currentTimeMillis();
-        
-        System.out.println("\nFetching and cleaning took: " + (end_fetch - start_fetch) + " millis.");
         
         try {
             
@@ -331,8 +309,10 @@ public class ViewIDE extends UIView {
             
         }
         
+        System.out.println("Error");
         for ( Error error : compiler.getErrors() ) {
             topLine.pushDownError(error);
+            System.out.println(error);
         }
         
     }
@@ -374,10 +354,27 @@ public class ViewIDE extends UIView {
                 
         }
         
+        saveAndCompileAndShowErrorMessages();
+        
     }
     
-    public boolean linesShouldIndentAtCreation() {
-        return linesShouldIndentAtCreation;
+    public boolean notLoading() {
+        return notLoading;
+    }
+    
+    private void save(String sourceCode) {
+        
+        try {
+                
+            document.setContent(sourceCode);
+            FileInterface.saveDocument(document);
+        
+        } catch (Exception e) {
+            
+            System.out.println(e.getLocalizedMessage());
+            
+        }
+        
     }
     
 }

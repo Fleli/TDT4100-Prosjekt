@@ -40,6 +40,8 @@ OpCode  Instruction     Description             Clarification
 -> Operand:     int adjustment (the new stack pointer's offset from the old one's)
 35      HEAPASSIGN                              Pop heap address and new value (address popped first), write value to heap @ address
 36      HEAPFETCH                               Pop heap address from stack, and push the value at that heap address back on stack
+37      PRINTINT                                Pop from stack, convert to string, print.
+38      NEWLINE                                 Delegates to console, runs ConsoleInstance.newLine()
 
 NOTE to 3, 4:   These will not cover all function call functionality, as return addresses
 must be pushed & popped like normal variables upon call & return.

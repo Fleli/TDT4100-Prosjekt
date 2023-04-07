@@ -11,6 +11,7 @@ import Project.Views.ViewIDE.ViewIDE;
 import javafx.application.Application;
 import javafx.geometry.Point2D;
 import javafx.scene.Scene;
+import javafx.scene.input.KeyCode;
 import javafx.scene.input.KeyEvent;
 import javafx.scene.input.MouseEvent;
 import javafx.scene.input.ScrollEvent;
@@ -47,6 +48,10 @@ public class Program extends Application {
         scene.addEventFilter(KeyEvent.KEY_PRESSED, (keyEvent) -> {
             
             UINode.ignoreKeyDown = false;
+            
+            if ( keyEvent.getCode() == KeyCode.Q  &&  keyEvent.isMetaDown() ) {
+                System.exit(0);
+            }
             
             if ( activeView != null ) {
                 activeView.KEY_PRESSED(keyEvent);

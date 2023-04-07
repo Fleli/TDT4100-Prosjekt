@@ -68,12 +68,12 @@ public class UICodeLine extends UITextField {
         errorNode = new UICodeErrorNode(width, fontSize, codeLineSpacing);
         addChild(errorNode);
         
-        if (ide.linesShouldIndentAtCreation()) {
-                
+        if (ide.notLoading()) {
+             
             for ( int i = 0 ; i < indentation ; i++ ) {
                 writeText("    ");
             }
-        
+            
         }
             
         refreshUI();
@@ -294,7 +294,37 @@ public class UICodeLine extends UITextField {
     
     @Override
     public void writeText(String text) {
+        
         super.writeText(text);
+        
+        if ( text.equals("{")  &&  ide.notLoading() ) {
+            
+            didPressEnter();
+            line_below.writeText("}");
+            ide.setActiveLine(this);
+            refreshSyntaxHighlighting();
+            didPressEnter();
+            /*didPressEnter();
+            didPressEnter();
+            ide.setActiveLine(this.line_below.line_below);*/
+            
+        } else if ( text.equals("(")  &&  ide.notLoading() ) {
+            
+            writeText(")");
+            moveLeft(1);
+            
+        } else if ( text.equals("\"")  &&  ide.notLoading() ) {
+            
+            super.writeText("\"");
+            moveLeft(1);
+            
+        } else if ( text.equals("[") &&  ide.notLoading() ) {
+            
+            writeText("]");
+            moveLeft(1);
+            
+        }
+        
         refreshSyntaxHighlighting();
     }
     

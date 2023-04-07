@@ -40,7 +40,7 @@ public class FileInterface {
         int year = now.getYear();
         
         String fileContent = 
-              extension      + "$"
+              extension     + "$"
             + fileName      + "$" 
             + author        + "$" 
             + day           + "$"
@@ -49,7 +49,7 @@ public class FileInterface {
             + day           + "$"
             + month         + "$"
             + year          + "$"
-            + "# Created by " + author + " on " + day + "/" + month + "/" + year
+            + "# Created by " + author + " on " + day + "/" + month + "/" + year + "."
             + "\n# This is a .f source code file."
             + "\n# This code is subject to local copyright law."
             + "\n\n"
@@ -118,9 +118,7 @@ public class FileInterface {
         
         reader.close();
         
-        System.out.println("file content" + fileContent.toString());
-        
-        return new Document(fileContent.toString());
+        return new Document(fileContent.toString(), file.length());
         
     }
     
@@ -144,6 +142,24 @@ public class FileInterface {
         }
         
         return new DocumentList(documents);
+        
+    }
+    
+    public static void saveDocument(Document document) throws IOException {
+        
+        File file = new File(filePath + document.getFileNameWithExtension());
+        
+        if ( !file.exists() ) {
+            throw new IOException("The file " + document.getFileNameWithExtension() + " does not exist.");
+        }
+        
+        BufferedWriter writer = new BufferedWriter( new FileWriter(file) );
+        
+        writer.write ( document.getStorableString() );
+        
+        writer.close();
+        
+        System.out.println(file.getAbsolutePath());
         
     }
     

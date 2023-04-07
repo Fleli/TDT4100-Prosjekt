@@ -9,7 +9,7 @@ import Project.Compiler.Compiler.Error;
 public class Lexer {
     
     private final static List<String> keywords = new ArrayList<String>( Arrays.asList( 
-        "int", "alloc", "if", "else", "heap", "while"
+        "int", "alloc", "if", "else", "heap", "while", "println"
     ) );
     
     private final static String initId = "_abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ";

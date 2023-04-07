@@ -1,5 +1,6 @@
 package Project.UIElements;
 
+import Project.Program;
 import Project.Documents.Document;
 import javafx.geometry.Point2D;
 import javafx.scene.control.Label;
@@ -12,7 +13,12 @@ import javafx.scene.text.Font;
 
 public class UIDocumentTableEntry extends UIButton {
     
-    public static final double tableEntryWidth = 1100;
+    public static final double tableEntryWidth = 1300;
+    
+    // fileImg, fileName, author, creation, open, fileSize, fileType
+    private static final double[] colWidths = { 
+        40, 260, 260, 120, 120, 140, 225
+    };
     
     private UIDocumentTableEntry above;
     private UIDocumentTableEntry below;
@@ -20,6 +26,8 @@ public class UIDocumentTableEntry extends UIButton {
     private Document document;
     
     private boolean isSelected = false;
+    private boolean isOddRow;
+    private boolean isTitleRow;
     
     private UIDocumentTable table;
     
@@ -32,45 +40,109 @@ public class UIDocumentTableEntry extends UIButton {
     private Label label_author;
     private Label label_created;
     private Label label_opened;
+    private Label label_size;
+    private Label label_type;
     
-    // TODO: Legg til label med size
-    
-    public UIDocumentTableEntry(double fontSize, double spacing, Document document, UIDocumentTable table) {
+    public UIDocumentTableEntry(double fontSize, double spacing, Document document, UIDocumentTable table, boolean isOddRow) {
         
-        super( 
+        super(
             new Point2D(0, 0), 
-            new UISize(tableEntryWidth, fontSize + spacing), 
+            new UISize(getTableEntryWidth(), fontSize + spacing), 
             ""
         );
         
         this.fontSize = fontSize;
         this.spacing = spacing;
-        
         this.table = table;
-        
+        this.isOddRow = isOddRow;
         this.document = document;
         
+        setViewOrder(1);
+        
         imgView = new ImageView( new Image( 
-            "file:TDT4100-prosjekt-frederee/src/main/java/Project/Images/fileFormat_" + document.getExtension() + ".png",
+            "file:TDT4100-prosjekt-frederee/src/main/java/Project/Images/FileFormats/" + document.getExtension() + ".png",
             fontSize + spacing, fontSize + spacing, true, true
         ) );
         getChildren().add(imgView);
         
-        label_fileName = new Label(document.getFileName() + "." + document.getExtension());
-        label_fileName.setTranslateX(50);
+        isTitleRow = false;
+        
+        init(
+            document.getFileNameWithExtension(), 
+            document.getAuthor(), 
+            document.getCreationDate_formattedString(),
+            document.getOpenDate_formattedString(),
+            document.getFileSize() + " bytes",
+            document.getTypeDescription()
+        );
+        
+    }
+    
+    public UIDocumentTableEntry(String[] tableTitles, double fontSize, double spacing, UIDocumentTable table) {
+        
+        super(
+            new Point2D(0, 0), 
+            new UISize(getTableEntryWidth(), fontSize + spacing), 
+            ""
+        );
+        
+        this.fontSize = fontSize;
+        this.spacing = spacing;
+        this.table = table;
+        
+        if ( tableTitles.length != colWidths.length - 1 ) {
+            throw new IllegalArgumentException("Mismatch between column widths (" + colWidths.length + ") and tableTitles (" + tableTitles.length + ")");
+        }
+        
+        isTitleRow = true;
+        
+        double screenWidth = Program.viewSize.width;
+        double tableWidth = getTableEntryWidth();
+        double translateX = screenWidth - tableWidth;
+        setTranslateX(translateX);
+        
+        init(
+            tableTitles[0],
+            tableTitles[1],
+            tableTitles[2],
+            tableTitles[3],
+            tableTitles[4],
+            tableTitles[5]
+        );
+        
+    }
+    
+    private void init(String fileName, String author, String created, String opened, String size, String type) {
+        
+        label_fileName = new Label(fileName);
+        label_fileName.setTranslateX(colWidths[0]);
+        label_fileName.setMaxWidth(colWidths[1]);
         setFontAndAddChild(label_fileName);
         
-        label_author = new Label(document.getAuthor());
-        label_author.setTranslateX(350);
+        label_author = new Label(author);
+        label_author.setTranslateX(colWidths[1] + colWidths[0]);
+        label_author.setMaxWidth(colWidths[2]);
         setFontAndAddChild(label_author);
         
-        label_created = new Label(document.getCreationDate_formattedString());
-        label_created.setTranslateX(650);
+        label_created = new Label(created);
+        label_created.setTranslateX(colWidths[2] + colWidths[1] + colWidths[0]);
+        label_created.setMaxWidth(colWidths[3]);
         setFontAndAddChild(label_created);
         
-        label_opened = new Label(document.getOpenDate_formattedString());
-        label_opened.setTranslateX(850);
+        label_opened = new Label(opened);
+        label_opened.setTranslateX(colWidths[3] + colWidths[2] + colWidths[1] + colWidths[0]);
+        label_opened.setMaxWidth(colWidths[4]);
         setFontAndAddChild(label_opened);
+        
+        label_size = new Label(size);
+        label_size.setTranslateX(colWidths[4] + colWidths[3] + colWidths[2] + colWidths[1] + colWidths[0]);
+        label_size.setMaxWidth(colWidths[5]);
+        setFontAndAddChild(label_size);
+        
+        label_type = new Label(type);
+        label_type.setTranslateX(colWidths[5] + colWidths[4] + colWidths[3] + colWidths[2] + colWidths[1] + colWidths[0]);
+        label_type.setMaxWidth(colWidths[6]);
+        setFontAndAddChild(label_type);
         
         setActionInside( () -> {
             activate();
@@ -108,16 +180,20 @@ public class UIDocumentTableEntry extends UIButton {
     }
     
     private void refreshUI() {
-        if (isSelected) {
+        if (isTitleRow) {
+            setFill(50, 80, 140);
+        } else if (isSelected) {
             setFill(20, 60, 20);
-        } else {
+        } else if (isOddRow) {
             setFill(140, 140, 140);
+        } else {
+            setFill(120, 120, 120);
         }
     }
     
     public void addBelow(Document documentBelow) {
         
-        UIDocumentTableEntry entry = new UIDocumentTableEntry(fontSize, spacing, documentBelow, table);
+        UIDocumentTableEntry entry = new UIDocumentTableEntry(fontSize, spacing, documentBelow, table, !isOddRow);
         
         entry.setTranslateY(fontSize + spacing);
         
@@ -150,7 +226,7 @@ public class UIDocumentTableEntry extends UIButton {
         
         ignoreKeyDown = true;
         
-        if ( keyEvent.getCode() == KeyCode.UP  &&  above != null ) {
+        if ( keyEvent.getCode() == KeyCode.UP  &&  above != null  &&  !above.isTitleRow ) {
             table.select(above);
         } else if ( keyEvent.getCode() == KeyCode.DOWN  &&  below != null ) {
             table.select(below);
@@ -162,6 +238,19 @@ public class UIDocumentTableEntry extends UIButton {
     
     public Document getDocument() {
         return document;
+    }
+    
+    @Override
+    public String toString() {
+        return document.getFileNameWithExtension();
+    }
+    
+    public boolean isSelected() {
+        return isSelected;
+    }
+    
+    public static double getTableEntryWidth() {
+        return colWidths[0] + colWidths[1] + colWidths[2] + colWidths[3] + colWidths[4] + colWidths[5] + colWidths[6];
     }
     
 }

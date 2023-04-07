@@ -55,13 +55,19 @@ public class UIButton extends UINode {
         mainLabel.setTranslateY(5);
         getChildren().add(mainLabel);
         
-        setFill(50, 50, 50);
-        
+    }
+    
+    public void setMainLabelStyle(String style) {
+        mainLabel.setStyle(style);
     }
     
     public void setFill ( int red , int green , int blue ) {
         rectangle.setFill( Color.rgb(red, green, blue) );
     }
+    
+    public void setFill ( int red , int green , int blue , double opacity ) {
+        rectangle.setFill( Color.rgb(red, green, blue, opacity) );
+    } 
     
     public void setTransparent() {
         rectangle.setFill(Color.TRANSPARENT);
@@ -86,6 +92,10 @@ public class UIButton extends UINode {
         rectangle = new Rectangle(size.width, size.height);
         getChildren().add(rectangle);
         
+    }
+    
+    public void setBackgroundStyle(String style) {
+        rectangle.setStyle(style);
     }
     
     public void setActionInside ( UIAction action_inside ) {

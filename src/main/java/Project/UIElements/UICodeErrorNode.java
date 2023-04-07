@@ -32,11 +32,11 @@ public class UICodeErrorNode extends UIButton {
         this.spacing = spacing;
         
         Image image = new Image(
-            "file:TDT4100-prosjekt-frederee/src/main/java/Project/Images/xcodeError.png",
+            "file:TDT4100-prosjekt-frederee/src/main/java/Project/Images/Editor/xcodeError.png",
             fontSize + spacing, fontSize + spacing, true, true
         );
         
-        setImage( image );
+        setImage(image);
         
         setActionInside( () -> {
             show();

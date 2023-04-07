@@ -22,15 +22,17 @@ public class UIDocumentTable extends UINode {
         
         this.program = mainProgram;
         
+        lastRow = new UIDocumentTableEntry(
+            new String[] { "Filnavn", "Forfatter", "Opprettet", "Sist åpnet", "Størrelse", "Filtype" }, 
+            fontSize, 6, this
+        );
+        
+        addChild(lastRow);
+        
         List<Document> documents = docList.getDocuments_sortedBy_openDate();
         
         for ( Document doc : documents ) {
-            if (lastRow == null) {
-                lastRow = new UIDocumentTableEntry(fontSize, 6, doc, this);
-                addChild(lastRow);
-            } else {
-                lastRow.addBelow(doc);
-            }
+            lastRow.addBelow(doc);
         }
         
     }
@@ -60,7 +62,45 @@ public class UIDocumentTable extends UINode {
         super.keyDown(keyEvent);
         
         if ( keyEvent.getCode() == KeyCode.ENTER  &&  selected != null ) {
-            program.beginEditing(selected.getDocument());
+            pressedEnter();
+        }
+        
+    }
+    
+    public void pressedEnter() {
+        program.beginEditing(selected.getDocument());
+    }
+    
+    @Override
+    public void afterKeyDown() {
+        
+        super.afterKeyDown();
+        
+        confirmSelection();
+        
+        System.out.println("Selected file: " + selected);
+        
+    }
+    
+    @Override
+    public void afterMouseDown() {
+        
+        super.afterMouseDown();
+        
+        confirmSelection();
+        
+        System.out.println("Selected file: " + selected);
+        
+    }
+    
+    private void confirmSelection() {
+        
+        if (selected == null) {
+            return;
+        }
+        
+        if ( !selected.isSelected() ) {
+            selected = null;
         }
         
     }

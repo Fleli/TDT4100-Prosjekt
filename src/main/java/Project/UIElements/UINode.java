@@ -35,13 +35,15 @@ public class UINode extends Pane {
         
         for ( Node child : children ) {
             if ( ignoreMouseDown ) {
-                return;
+                break;
             }
             if ( child instanceof UINode ) {
                 UINode uiNode = (UINode) child;
                 uiNode.MOUSE_CLICKED(adjustedLocation);
             }
         }
+        
+        afterMouseDown();
         
     }
     
@@ -99,6 +101,11 @@ public class UINode extends Pane {
      * to be local for the receiver.
      */
     public void mouseDown(Point2D location) {}
+    
+    /**
+     * Will run after MOUSE_CLICKED has been called on all children.
+     */
+    public void afterMouseDown() {}
     
     /**
      * Method for handling keyDown actions in {@code UINode} objects.

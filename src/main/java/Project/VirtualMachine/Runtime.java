@@ -17,7 +17,8 @@ public class Runtime {
         "END", "PRINT", "NEWVAR", "PUSHFRAME", "POPFRAME", "ADD", "SUB", "MUL", "DIV", "BITAND", "BITOR", "BITXOR",
         "NOTEQ", "EQ", "MOD", "SMALLER", "GREATER", "NOTINUSE17", "NOTINUSE18", "NOTINUSE19", "NOTINUSE20",
         "NOTINUSE21", "BITNOT", "NEGATE", "NOTINUSE24", "NOTINUSE25", "NOTINUSE26", "NOTINUSE27", "PUSHINT",
-        "PUSHVAR", "POPASSIGN", "ALLOCATE", "ADJUSTPC", "ADJUSTATZERO", "ADJUSTSP", "HEAPASSIGN", "HEAPFETCH"
+        "PUSHVAR", "POPASSIGN", "ALLOCATE", "ADJUSTPC", "ADJUSTATZERO", "ADJUSTSP", "HEAPASSIGN", "HEAPFETCH",
+        "PRINTINT", "NEWLINE"
     ) );
     
     private VMInstructionMemory instructionMemory;
@@ -125,7 +126,14 @@ public class Runtime {
             } case 36: {
                 instruction_HEAPFETCH();
                 break;
-            } default: {
+            } case 37: {
+                instruction_PRINTINT();
+                break;
+            } case 38: {
+                instruction_NEWLINE();
+                break;
+            }
+            default: {
                 throw new VMException("Unrecognized instruction " + opcode, "instruction decoder");
             }
             
@@ -302,6 +310,16 @@ public class Runtime {
         int address = stack.pop();
         int value = heap.getData(address);
         stack.push(value);
+    }
+    
+    private void instruction_PRINTINT() throws VMException {
+        int argument = stack.pop();
+        String text = Integer.toString(argument);
+        console.print(text);
+    }
+    
+    private void instruction_NEWLINE() throws VMException {
+        console.newLine();
     }
     
     // TODO: Her kan flere instruksjoner legges til (merker med TODO slik at blålinja dukker opp)

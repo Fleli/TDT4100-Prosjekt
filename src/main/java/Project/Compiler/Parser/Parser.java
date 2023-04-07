@@ -12,6 +12,7 @@ import Project.Compiler.Parser.StatementTypes.Assignment;
 import Project.Compiler.Parser.StatementTypes.Conditional;
 import Project.Compiler.Parser.StatementTypes.Declaration;
 import Project.Compiler.Parser.StatementTypes.HeapAssignment;
+import Project.Compiler.Parser.StatementTypes.Print;
 import Project.Compiler.Parser.StatementTypes.While;
 
 public class Parser {
@@ -22,6 +23,7 @@ public class Parser {
     public static final int mask_conditionals       =       1 << 2;
     public static final int mask_heapAssign         =       1 << 3;
     public static final int mask_while              =       1 << 4;
+    public static final int mask_println            =       1 << 5;
     // flere masks, for functionDef, functionCall, osv.
     // bruker 1 << n som maskeverdier
     
@@ -120,6 +122,7 @@ public class Parser {
         boolean allow_conditionals  = ( masks & mask_conditionals ) == mask_conditionals;
         boolean allow_heapAssign    = ( masks & mask_heapAssign )   == mask_heapAssign;
         boolean allow_while         = ( masks & mask_while )        == mask_while;
+        boolean allow_println       = ( masks & mask_println )      == mask_println;
     
         while ( index < tokens.size() ) {
             
@@ -172,6 +175,14 @@ public class Parser {
             } else if ( token.typeIs(";") ) {
                 
                 incrementIndex();
+                
+            } else if ( allow_println  &&  token.typeIs("keyword")  &&  token.contentIs("println") ) {
+                
+                Print print = parse_print(true);
+                
+                if (print != null) {
+                    statements.add(print);
+                }
                 
             }
             
@@ -454,6 +465,42 @@ public class Parser {
         incrementIndex();
         
         return new While(condition, body);
+        
+    }
+    
+    public Print parse_print(boolean is_println) {
+        
+        incrementIndex();
+        
+        if ( inputIsExhausted() ) {
+            submitErrorOnCurrentLine("Expected output type in print statement.");
+            return null;
+        }
+        
+        boolean is_not_keyword = !token().typeIs("keyword");
+        boolean is_not_valid_type = !Print.allowed_types.contains(token().content());
+        
+        if ( is_not_keyword  ||  is_not_valid_type ) {
+            submitErrorOnToken("output type");
+            return null;
+        }
+        
+        String output_type = token().content();
+        incrementIndex();
+        
+        Expression argument = expressionParser.parse(1);
+        
+        if ( argument == null ) {
+            return null;
+        }
+        
+        if ( isExhaustedOrNotSpecificType(";", "Expected ; to complete print statement") ) {
+            return null;
+        }
+        
+        incrementIndex();
+        
+        return new Print(is_println, output_type, argument);
         
     }
     

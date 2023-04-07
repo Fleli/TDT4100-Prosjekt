@@ -7,7 +7,7 @@ import javafx.scene.text.Font;
 
 public class UIConsoleLine extends UINode {
     
-    private static final double spacing = 12;
+    public static final double spacing = 12;
     
     private Label label;
     private StringBuilder text = new StringBuilder("");
@@ -42,35 +42,49 @@ public class UIConsoleLine extends UINode {
         
         int index = 0;
         
-        while ( this.text.length() < maxChars  &&  index < text.length() ) {
+        while ( index < text.length() ) {
             
             char next = text.charAt(index);
             
             if ( next == '\n' ) {
+                
                 index++;
+                
+                newLine();
+                String remaining = text.substring(index);
+                line_below.print(remaining);
+                
                 break;
+                
+            } else if ( this.text.length() >= maxChars ) {
+                
+                newLine();
+                String remaining = text.substring(index);
+                line_below.print(remaining);
+                
             } else {
+                
                 this.text.append(next);
                 index++;
+                
             }
             
         }
         
         label.setText(this.text.toString());
         
-        if ( index < text.length() ) {
-            newLine();
-            String remaining = text.substring(index);
-            line_below.print(remaining);
-        }
-        
     }
     
     public void newLine() {
+        
         UIConsoleLine newBelow = new UIConsoleLine(fontSize, maxChars, console);
         newBelow.setTranslateY(fontSize + spacing);
+        
+        console.incrementLineCount();
         addChild(newBelow);
-        this.line_below = newBelow;
+        
+        line_below = newBelow;
+        
     }
     
 }
