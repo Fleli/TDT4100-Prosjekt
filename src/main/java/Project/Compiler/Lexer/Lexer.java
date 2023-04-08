@@ -9,7 +9,7 @@ import Project.Compiler.Compiler.Error;
 public class Lexer {
     
     private final static List<String> keywords = new ArrayList<String>( Arrays.asList( 
-        "int", "alloc", "if", "else", "heap", "while", "println"
+        "int", "alloc", "if", "else", "heap", "while", "println", "print", "string"
     ) );
     
     private final static String initId = "_abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ";
@@ -42,7 +42,7 @@ public class Lexer {
     }
     
     private void submitError(String message, Token errorToken) {
-        Error newError = new Error(message, errorToken);
+        Error newError = new Error(message, errorToken, "issue");
         errors.add(newError);
     }
     

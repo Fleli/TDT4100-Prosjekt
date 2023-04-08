@@ -4,8 +4,7 @@ The virtual computer has the following instruction set:
 OpCode  Instruction     Description             Clarification
 ––––––––––––––––––—––––––––––––––––––––––––––––––––––––––––––––––––––––––—–––––––––––––––––––––––––––––––––––––––––––––––––––––––––––
 0       END             Exit program            End program normally (exit code 0)
-1       PRINT           Print specified string  Read chars from heap, starting at operand, until 0.
--> Operand:     int* stringLocationInHeap
+1       PRINT           Print specified string  Read chars from heap, starting at top of stack (popped), until 0
 2       NEWVAR          New Variable            Push the value 0 (default for int) to the stack, "creating" a new variable.
 3       PUSHFRAME       Push frame to stack     Push a new frame to the stack, used for function calls/new blocks.
 4       POPFRAME        Pop frame from stack    Remove the most local frame from the stack, used for function returns
@@ -42,6 +41,8 @@ OpCode  Instruction     Description             Clarification
 36      HEAPFETCH                               Pop heap address from stack, and push the value at that heap address back on stack
 37      PRINTINT                                Pop from stack, convert to string, print.
 38      NEWLINE                                 Delegates to console, runs ConsoleInstance.newLine()
+39      HEAPOFFSET                              Write top of stack (popped) to next top (peeked) plus offset (operand)
+-> Operand:     int offset (Added to the peeked heap location at top of stack after value to write is popped)
 
 NOTE to 3, 4:   These will not cover all function call functionality, as return addresses
 must be pushed & popped like normal variables upon call & return.

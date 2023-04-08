@@ -1,5 +1,6 @@
 package Project.Compiler.NameBinding;
 
+import Project.Compiler.Lexer.Token;
 import Project.Compiler.Parser.StatementTypes.Declaration;
 
 public class ScopeEntry {
@@ -12,8 +13,20 @@ public class ScopeEntry {
         this.localIndex = localIndex;
     }
     
-    public int getLocalIndex() {
+    public Token getNameToken() {
+        return declaration.getNameToken();
+    }
+    
+    public boolean wasReadFrom() {
+        return declaration.wasReadFrom();
+    }
+    
+    public int getLocalIndex(boolean doNotMarkAsRead) {
+        
+        if (!doNotMarkAsRead) declaration.didReadFrom();
+        
         return localIndex;
+        
     }
     
     public String getName() {

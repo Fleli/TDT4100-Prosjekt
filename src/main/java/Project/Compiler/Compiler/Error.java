@@ -21,16 +21,25 @@ public class Error {
     */
     private int line;
     
+    /**
+     * An error might be an issue (so that compilation cannot be completed properly), or
+     * it could be a warning if the programmer's code is syntactically correct but might
+     * create unexpected behaviour or other problems.
+     */
+    private String severity;
     
-    public Error(String message, int line) {
+    
+    public Error(String message, int line, String severity) {
         this.message = message;
         this.line = line;
+        this.severity = severity;
     }
     
-    public Error(String message, Token token) {
+    public Error(String message, Token token, String severity) {
         this.message = message;
         this.token = token;
         this.line = token.getLine();
+        this.severity = severity;
     }
     
     public int getLine() {
@@ -41,22 +50,31 @@ public class Error {
         return message;
     }
     
-    /**
-     * This method will be removed, but is only here to temporarily get rid of any errors while it is under design.
-     * @deprecated
-     * @return Token
-     */
-    public Token getToken() {
-        return token;
+    public String getSeverity() {
+        return severity;
+    }
+    
+    public Integer getColumn() {
+        
+        if (token != null) {
+            return token.startColumn();
+        } else {
+            return null;
+        }
+        
     }
     
     @Override
     public String toString() {
+        
+        String prefix = "@Line" + line + "\t\t" + getMessage() + "(" + severity + ")";
+        
         if ( token == null ) {
-            return "@Line" + line + "\t\t" + getMessage();
+            return prefix;
         } else {
-            return "@Line" + line + "\t\t" + getMessage() + " (at token " + token + ")";
+            return prefix + " (at token " + token + ")";
         }
+        
     }
     
 }

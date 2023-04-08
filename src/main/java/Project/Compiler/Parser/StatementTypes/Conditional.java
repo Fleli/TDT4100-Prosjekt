@@ -53,7 +53,7 @@ public class Conditional implements Statement {
     public Conditional ( Expression condition , List<Statement> body ) {
         
         if ( condition == null  ||  body == null ) {
-            throw new IllegalArgumentException("All arguments must be non-null.");
+            throw new IllegalArgumentException("All arguments must be non-null yo");
         }
         
         this.condition = condition;

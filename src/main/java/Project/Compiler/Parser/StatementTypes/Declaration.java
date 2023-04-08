@@ -36,6 +36,12 @@ public class Declaration implements Statement {
     private Token nameToken;
     
     /**
+     * Indicating whether this variable was ever read from. The variable is useless if it has never been
+     * written to, so a warning will be produced.
+     */
+    private boolean wasReadFrom;
+    
+    /**
      * Create a new {@code Declaration} object without an initial value (that is, a specified
      * value other than the default 0 value).
      * @param pointerDepth The level of indirection to an actual {@code int} this variable has
@@ -50,6 +56,14 @@ public class Declaration implements Statement {
         
         this.nameToken = nameToken;
         
+    }
+    
+    public void didReadFrom() {
+        wasReadFrom = true;
+    }
+    
+    public boolean wasReadFrom() {
+        return wasReadFrom;
     }
     
     /**
@@ -72,7 +86,7 @@ public class Declaration implements Statement {
         this.name = name;
         
         this.initialRhs = initialRhs;
-        this.assignment = new Assignment(name, initialRhs, nameToken);
+        this.assignment = new Assignment(name, initialRhs, nameToken, true);
         
         this.nameToken = nameToken;
         

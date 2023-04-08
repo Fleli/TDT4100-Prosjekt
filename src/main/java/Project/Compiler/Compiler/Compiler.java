@@ -92,13 +92,13 @@ public class Compiler {
             
             index++;
             
-            if (   instruction == 1
-                || instruction == 28
+            if (   instruction == 28
                 || instruction == 29
                 || instruction == 30
                 || instruction == 32
                 || instruction == 33
-                || instruction == 34 )
+                || instruction == 34
+                || instruction == 39 )
             {
                 instruction = executable.getExeData(index);
                 System.out.println("   ->operand: " + instruction );
@@ -132,6 +132,7 @@ public class Compiler {
         for ( Statement statement : program ) {
             statement.bind_names(environment);
         }
+        environment.verifyUsedDeclarationsInGlobal();
     }
     
     private void generateExecutable(List<Statement> program, InstructionList executable) {
@@ -143,6 +144,12 @@ public class Compiler {
         
         executable.add(0, null); // End program;
         
+    }
+    
+    public static boolean isDataTypes(String keyword) {
+        return 
+            keyword.equals("int")
+            ||  keyword.equals("string");
     }
     
 }

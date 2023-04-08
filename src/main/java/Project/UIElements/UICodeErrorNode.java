@@ -17,26 +17,33 @@ public class UICodeErrorNode extends UIButton {
     private double spacing;
     
     private List<UICodeErrorMessageLine> errorMessageLines = new ArrayList<UICodeErrorMessageLine>();
-
-    public UICodeErrorNode(double lineWidth, double fontSize, double spacing) {
+    
+    private Image image_issue;
+    private Image image_warning;
+    
+    public UICodeErrorNode(UICodeLine line) {
         
         super(
-            new Point2D(lineWidth - (fontSize + spacing), 0),
-            new UISize(fontSize + spacing, fontSize + spacing),
+            new Point2D(line.getCodeLineWidth() - (line.getFontSize() + line.getSpacing()), 0),
+            new UISize(line.getFontSize() + line.getSpacing(), line.getFontSize() + line.getSpacing()),
             ""
         );
         
-        this.lineWidth = lineWidth;
+        this.lineWidth = line.getCodeLineWidth();
+        this.fontSize = line.getFontSize();
+        this.spacing = line.getSpacing();
         
-        this.fontSize = fontSize;
-        this.spacing = spacing;
-        
-        Image image = new Image(
+        image_issue = new Image(
             "file:TDT4100-prosjekt-frederee/src/main/java/Project/Images/Editor/xcodeError.png",
             fontSize + spacing, fontSize + spacing, true, true
         );
         
-        setImage(image);
+        image_warning = new Image(
+            "file:TDT4100-prosjekt-frederee/src/main/java/Project/Images/Editor/warning.png",
+            fontSize + spacing, fontSize + spacing, true, true
+        );
+        
+        setImage(image_warning);
         
         setActionInside( () -> {
             show();
@@ -57,30 +64,16 @@ public class UICodeErrorNode extends UIButton {
     public void addError(Error error) {
         
         setVisible(true);
-        
-        /*if ( errors.size() == 0 ) {
-            
-            TranslateTransition animation = new TranslateTransition( new Duration(200) , this );
-            animation.setCycleCount(1);
-            animation.setByX(-30);
-            animation.play();
-            
-        }*/
-        
         errors.add(error);
-        
-        double ty = errors.size() * (fontSize + spacing);
-        
-        UICodeErrorMessageLine errorLine = new UICodeErrorMessageLine(error.getMessage(), lineWidth - 200, fontSize + spacing, fontSize);
-        errorLine.setTranslateY(ty);
-        getChildren().add(errorLine);
-        
-        errorMessageLines.add(errorLine);
         
     }
     
     public boolean isEmpty() {
         return (errors.size() == 0);
+    }
+    
+    public List<Error> getErrors() {
+        return errors;
     }
     
     private void hide() {
@@ -95,6 +88,36 @@ public class UICodeErrorNode extends UIButton {
         
         for ( UICodeErrorMessageLine messageLine : errorMessageLines ) {
             messageLine.setVisible(true);
+        }
+        
+    }
+    
+    public void finished() {
+        
+        int index = 1;
+        
+        for ( Error error : errors ) {
+                
+            if (error.getSeverity().equals("issue")) {
+                setImage(image_issue);
+            }
+            
+            double ty = index * (fontSize + spacing);
+            
+            UICodeErrorMessageLine errorLine = new UICodeErrorMessageLine(
+                error.getMessage(), 
+                lineWidth - 200, 
+                fontSize + spacing, 
+                fontSize,
+                error.getSeverity()
+            );
+            errorLine.setTranslateY(ty);
+            getChildren().add(errorLine);
+            
+            errorMessageLines.add(errorLine);
+            
+            index += 1;
+            
         }
         
     }

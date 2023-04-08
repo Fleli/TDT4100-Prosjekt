@@ -52,11 +52,31 @@ public class Environment {
         
     }
     
+    public void submitNeverReadWarning(ScopeEntry entry) {
+        
+        Error error = new Error(
+            "The variable " + entry.getName() + " was never read from.",
+            entry.getNameToken(),
+            "warning"
+        );
+        
+        errors.add(error);
+        
+    }
+    
+    public void verifyUsedDeclarationsInGlobal() {
+        scopes.get(0).verifyUsedDeclarations();
+    }
+    
     public void popScope() {
         
         if ( scopes.size() <= 1 ) {
             throw new IllegalStateException("Cannot remove last scope from Environment (ScopeStackUnderflow)");
         }
+        
+        Scope scope = scopes.get(scopes.size() - 1);
+        
+        scope.verifyUsedDeclarations();
         
         scopes.remove ( scopes.size() - 1 );
         
@@ -78,37 +98,39 @@ public class Environment {
         
     }
     
-    public int getLocalIndex(String name, Token referenceToken) {
+    public int getLocalIndex(String name, Token referenceToken, boolean doNotMarkAsRead) {
         
         for ( int index = scopes.size() - 1 ; index >= 0 ; index-- ) {
             
             Scope scope = scopes.get(index);
             
             if ( scope.variableExists(name) ) {
-                return scope.getLocalIndex(name, referenceToken);
+                return scope.getLocalIndex(name, referenceToken, doNotMarkAsRead);
             }
             
         }
         
         submitError( new Error(
             "This context does not define the variable " + name,
-            referenceToken
+            referenceToken,
+            "issue"
         ));
         return 0;
         
     }
     
-    public int bind_and_get_local_index(String name, Token referenceToken) {
+    public int bind_and_get_local_index(String name, Token referenceToken, boolean doNotMarkedAsRead) {
         
         if ( !variableExists(name) ) {
             submitError( new Error(
                 "The variable " + name + " is not defined in this context.", 
-                referenceToken
+                referenceToken,
+                "issue"
             ) );
             return 0;
         }
         
-        int localIndex = getLocalIndex(name, referenceToken);
+        int localIndex = getLocalIndex(name, referenceToken, doNotMarkedAsRead);
         
         if ( localIndex == 0 ) {
             System.out.println("Local index of " + name + " is 0");

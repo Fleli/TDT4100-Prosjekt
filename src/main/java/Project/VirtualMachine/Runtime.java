@@ -18,7 +18,7 @@ public class Runtime {
         "NOTEQ", "EQ", "MOD", "SMALLER", "GREATER", "NOTINUSE17", "NOTINUSE18", "NOTINUSE19", "NOTINUSE20",
         "NOTINUSE21", "BITNOT", "NEGATE", "NOTINUSE24", "NOTINUSE25", "NOTINUSE26", "NOTINUSE27", "PUSHINT",
         "PUSHVAR", "POPASSIGN", "ALLOCATE", "ADJUSTPC", "ADJUSTATZERO", "ADJUSTSP", "HEAPASSIGN", "HEAPFETCH",
-        "PRINTINT", "NEWLINE"
+        "PRINTINT", "NEWLINE", "HEAPOFFSET"
     ) );
     
     private VMInstructionMemory instructionMemory;
@@ -132,6 +132,9 @@ public class Runtime {
             } case 38: {
                 instruction_NEWLINE();
                 break;
+            } case 39: {
+                instruction_HEAPOFFSET();
+                break;
             }
             default: {
                 throw new VMException("Unrecognized instruction " + opcode, "instruction decoder");
@@ -173,7 +176,7 @@ public class Runtime {
     
     private void instruction_PRINT() throws VMException {
         
-        int stringPointer = instructionMemory.getNextInstruction().getOpcode_or_operand();
+        int stringPointer = stack.pop();
         int initialPointer = stringPointer;
         
         int data = heap.getData(stringPointer);
@@ -182,7 +185,8 @@ public class Runtime {
         
         while ( data != 0 ) {
             
-            output.append(data);
+            char[] nextChar = Character.toChars(data);
+            output.append(nextChar);
             
             stringPointer = (stringPointer + 1) % (heap.getSize());
             
@@ -320,6 +324,15 @@ public class Runtime {
     
     private void instruction_NEWLINE() throws VMException {
         console.newLine();
+    }
+    
+    private void instruction_HEAPOFFSET() throws VMException {
+        int value = stack.pop();
+        int heap_base_address = stack.peek(1);
+        int heap_base_offset = instructionMemory.getNextInstruction().getOpcode_or_operand();
+        int heap_address = heap_base_address + heap_base_offset;
+        heap.setData(heap_address, value);
+        System.out.println("HEAPOFFSET: " + heap_address + " " + value);
     }
     
     // TODO: Her kan flere instruksjoner legges til (merker med TODO slik at blålinja dukker opp)

@@ -12,13 +12,24 @@ public class UICodeErrorMessageLine extends UINode {
     private Rectangle background;
     private Label label;
     
-    public UICodeErrorMessageLine(String message, double width, double height, double fontSize) {
+    public UICodeErrorMessageLine(String message, double width, double height, double fontSize, String severity) {
         
         super();
         
         background = new Rectangle(width, height);
         background.setTranslateX(-width);
-        background.setFill(Color.rgb(150, 40, 40, 0.8));
+        
+        switch (severity) {
+            case "issue":
+                background.setFill(Color.rgb(150, 40, 40, 0.8));
+                break;
+            case "warning":
+                background.setFill(Color.rgb(180, 150, 30));
+                break;
+            default:
+                throw new IllegalStateException("Error severity is " + severity + ", which is not supported.");
+        }
+        
         getChildren().add(background);
         
         label = new Label(message);

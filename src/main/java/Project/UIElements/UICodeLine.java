@@ -1,5 +1,7 @@
 package Project.UIElements;
 
+import java.util.List;
+
 import Project.Compiler.Compiler.Error;
 import Project.Views.ViewIDE.ViewIDE;
 import javafx.geometry.Point2D;
@@ -65,7 +67,7 @@ public class UICodeLine extends UITextField {
         ga = g + 20;
         ba = b + 20;
         
-        errorNode = new UICodeErrorNode(width, fontSize, codeLineSpacing);
+        errorNode = new UICodeErrorNode(this);
         addChild(errorNode);
         
         if (ide.notLoading()) {
@@ -147,7 +149,7 @@ public class UICodeLine extends UITextField {
         }
         
         refreshUI();
-        refreshSyntaxHighlighting();
+        ide.refreshSyntaxHighlighting(this);
         setCorrectFill();
         
     }
@@ -156,8 +158,16 @@ public class UICodeLine extends UITextField {
         return line_below;
     }
     
+    public double getSpacing() {
+        return codeLineSpacing;
+    }
+    
     public UICodeLine getLineAbove() {
         return line_above;
+    }
+    
+    public double getCodeLineWidth() {
+        return width;
     }
     
     public void insertLineBelow(UICodeLine newBelow) {
@@ -302,7 +312,7 @@ public class UICodeLine extends UITextField {
             didPressEnter();
             line_below.writeText("}");
             ide.setActiveLine(this);
-            refreshSyntaxHighlighting();
+            ide.refreshSyntaxHighlighting(this);
             didPressEnter();
             /*didPressEnter();
             didPressEnter();
@@ -325,7 +335,8 @@ public class UICodeLine extends UITextField {
             
         }
         
-        refreshSyntaxHighlighting();
+        ide.refreshSyntaxHighlighting(this);
+        
     }
     
     public void writeTextButDoNotAdjustCursor(String text) {
@@ -333,10 +344,8 @@ public class UICodeLine extends UITextField {
         moveLeft(text.length());
     }
     
-    private void refreshSyntaxHighlighting() {
-        String lineContent = getText();
-        UILabel attributedText = ide.syntaxHighlighted(this, lineContent);
-        setAttributedText(attributedText);
+    public double getFontSize() {
+        return fontSize;
     }
     
     public String recursivelyFetchSourceCode() {
@@ -374,6 +383,21 @@ public class UICodeLine extends UITextField {
         
     }
     
+    public List<Error> getErrors() {
+        return errorNode.getErrors();
+    }
+    
+    public void finishedErrors() {
+        
+        errorNode.finished();
+        ide.refreshSyntaxHighlighting(this);
+        
+        if (line_below != null) {
+            line_below.finishedErrors();
+        }
+        
+    }
+    
     public void clearErrors() {
         
         if ( !errorNode.isEmpty() ) {
@@ -382,7 +406,7 @@ public class UICodeLine extends UITextField {
                 removeChild(errorNode);
             }
             
-            errorNode = new UICodeErrorNode(width, fontSize, codeLineSpacing);
+            errorNode = new UICodeErrorNode(this);
             addChild(errorNode);
             
         }

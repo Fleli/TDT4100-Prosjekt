@@ -1,6 +1,7 @@
 package Project.Views.ViewOpenFile;
 
 import Project.Program;
+import Project.FileInterface.FileInterface;
 import Project.UIElements.UIButton;
 import Project.UIElements.UIDocumentTableEntry;
 import Project.UIElements.UINode;
@@ -73,8 +74,20 @@ public class FileBrowserLeftBand extends UINode {
             
             if (selected != null) {
                 
-                // TODO: Slett filen
+                String fileName = selected.getDocument().getFileName();
+                String extension = selected.getDocument().getExtension();
+                
+                try {
+                        
+                    FileInterface.delete(fileName, extension);
+                    fileBrowser.reload();
             
+                } catch (Exception e) {
+                    
+                    System.out.println("\n\n\n --- Exception " + e.getLocalizedMessage() + " --- \n\n\n");
+                    
+                }
+                    
             }
             
         } );

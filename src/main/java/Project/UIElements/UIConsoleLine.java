@@ -62,6 +62,8 @@ public class UIConsoleLine extends UINode {
                 String remaining = text.substring(index);
                 line_below.print(remaining);
                 
+                break;
+                
             } else {
                 
                 this.text.append(next);

@@ -27,6 +27,8 @@ public class Assignment implements Statement {
      */
     private int localIndexOfLhs;
     
+    private boolean partOfDeclaration;
+    
     /**
      * Creates a new {@code Assignment} object with the specified name ({@code String lhs})
      * and new value ({@code Expression rhs}) to assign to the specified name. Note that
@@ -38,17 +40,18 @@ public class Assignment implements Statement {
      * @param rhs An {@code Expression} object representing the value to assign to the
      * specified variable.
      */
-    public Assignment(String lhs, Expression rhs, Token lhsToken) {
+    public Assignment(String lhs, Expression rhs, Token lhsToken, boolean partOfDeclaration) {
         this.lhs = lhs;
         this.rhs = rhs;
         this.lhsToken = lhsToken;
+        this.partOfDeclaration = partOfDeclaration;
     }
     
     
     @Override
     public void bind_names(Environment environment) {
         
-        localIndexOfLhs = environment.bind_and_get_local_index(lhs, lhsToken);
+        localIndexOfLhs = environment.bind_and_get_local_index(lhs, lhsToken, partOfDeclaration);
         
         rhs.bind_names(environment);
         

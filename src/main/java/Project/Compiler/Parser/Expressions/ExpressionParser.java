@@ -73,6 +73,8 @@ public class ExpressionParser {
                 node = parseAlloc();
             } else if ( token.typeIs("keyword")  &&  token.contentIs("heap") ) {
                 node = parseHeapAccess();
+            } else if ( token.typeIs("stringLiteral") ) {
+                node = parseStringLiteral();
             } else {
                 parser.submitErrorOnToken("expression");
                 incrementIndex();
@@ -172,7 +174,7 @@ public class ExpressionParser {
         
         parser.incrementIndex();
         
-        return new Expression(reference, referenceToken);
+        return new Expression(reference, referenceToken, true);
         
     }
     
@@ -249,6 +251,22 @@ public class ExpressionParser {
         incrementIndex();
         
         return new Expression(address, "heapAccess");
+        
+    }
+    
+    private Expression parseStringLiteral() {
+        
+        Token token = parser.token();
+        
+        StringBuilder including_quotes = new StringBuilder(token.content());
+        including_quotes.deleteCharAt(0);
+        including_quotes.deleteCharAt(including_quotes.length() - 1);
+        
+        incrementIndex();
+        
+        String string = including_quotes.toString();
+        
+        return new Expression(string, token, false);
         
     }
     

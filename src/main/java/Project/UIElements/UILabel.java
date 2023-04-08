@@ -2,6 +2,7 @@ package Project.UIElements;
 
 import javafx.scene.control.Label;
 import javafx.scene.paint.Color;
+import javafx.scene.shape.SVGPath;
 import javafx.scene.text.Font;
 
 /**
@@ -19,7 +20,7 @@ public class UILabel extends UINode {
         
     }
     
-    public void addAttributedText(String text, Color color, int col, String special) {
+    public void addAttributedText(String text, Color color, int col, String special, SVGPath path) {
         
         Label textNode = new Label(text);
         
@@ -34,6 +35,11 @@ public class UILabel extends UINode {
         textNode.setTranslateX(translateX);
         
         getChildren().add(textNode);
+        
+        if (path != null) {
+            getChildren().add(path);
+            path.setTranslateX(translateX);
+        }
         
     }
     

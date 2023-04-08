@@ -74,11 +74,10 @@ public class Print implements Statement {
         return instructions;
         
     }
-
+    
     @Override
     public String description() {
-        // TODO Auto-generated method stub
-        throw new UnsupportedOperationException("Unimplemented method 'description'");
+        return "print (line: " + is_println + "): " + argument.description();
     }
     
     

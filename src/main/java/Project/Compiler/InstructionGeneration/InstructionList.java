@@ -53,7 +53,7 @@ public class InstructionList implements Iterable<Instruction> {
     public String getAssociatedStatement( int index ) {
         Instruction instruction = instructions.get(index);
         Statement statement = instruction.getAssociatedStatement();
-        if ( statement == null ) return null;
+        if ( statement == null ) return "";
         return statement.description();
     }
     

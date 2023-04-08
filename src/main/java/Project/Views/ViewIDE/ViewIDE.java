@@ -1,18 +1,15 @@
 package Project.Views.ViewIDE;
 
-import java.util.List;
-
 import Project.Program;
 import Project.Compiler.Compiler.Compiler;
-import Project.Compiler.Compiler.Error;
-import Project.Compiler.Lexer.Token;
 import Project.Documents.Document;
 import Project.FileInterface.FileInterface;
 import Project.UIElements.UICodeLine;
-import Project.UIElements.UILabel;
 import Project.UIElements.UINode;
 import Project.UIElements.UISize;
 import Project.Views.UIView;
+import Project.Views.ViewIDE.LanguageDelegates.Delegate_f;
+import Project.Views.ViewIDE.LanguageDelegates.LanguageDelegate;
 import Project.VirtualMachine.Runtime;
 import Project.VirtualMachine.VMException;
 import javafx.scene.input.Clipboard;
@@ -50,6 +47,11 @@ public class ViewIDE extends UIView {
     
     private boolean notLoading = true;
     
+    private LanguageDelegate delegate;
+    
+    // TODO: Se mer på denne
+    private boolean autosave = true;
+    
     public ViewIDE(UISize size, Document document) {
         
         // TODO: Rens denne konstruktøren, fordi den er ikke pen å lese gjennom
@@ -57,6 +59,8 @@ public class ViewIDE extends UIView {
         super(size);
         
         this.document = document;
+        
+        delegate = new Delegate_f();
         
         codeBackground = new Rectangle(codeLineWidth, codeAreaHeight);
         codeBackground.setFill(Color.rgb(25, 30, 50, 1)); // TODO: Link this color with codeline colors
@@ -109,75 +113,8 @@ public class ViewIDE extends UIView {
         
     }
     
-    public UILabel syntaxHighlighted(UICodeLine codeLine, String text) {
-        
-        UILabel syntaxHighlightedLabel = new UILabel(preferred_fontSize);
-        
-        List<Token> syntaxHighlightableTokens = compiler.getSyntaxHighlightableTokens(text);
-        
-        int netLeftBraces = 0;
-        
-        for ( Token token : syntaxHighlightableTokens ) {
-            
-            String content = token.content();
-            String type = token.type();
-            int col = token.startColumn();
-            
-            if ( token.typeIs("{") ) {
-                netLeftBraces += 1;
-            } else if ( token.typeIs("}") ) {
-                netLeftBraces -= 1;
-            }
-            
-            String special = null;
-            
-            Color color;
-            
-            switch (type) {
-                
-                case "identifier": {
-                    color = Color.rgb(160, 200, 240);
-                    break;
-                } case "intLiteral": {
-                    color = Color.rgb(235, 235, 80);
-                    break;
-                } case "operator": {
-                    color = Color.rgb(220, 220, 220);
-                    break;
-                } case "control": {
-                    color = Color.rgb(235, 235, 235);
-                    break;
-                } case "comment": {
-                    color = Color.rgb(30, 160, 40);
-                    special = "-fx-font-style: italic;";
-                    break;
-                } case "keyword": {
-                    color = Color.rgb(230, 100, 100);
-                    special = "-fx-font-weight: bold;";
-                    // Kan bruke for feilmeldinger:  -fx-border-color: red; -fx-border-width: 0 0 1 0;
-                    break;
-                } case "stringLiteral": {
-                    color = Color.rgb(230, 160, 60);
-                    break;
-                } case "error": {
-                    color = Color.rgb(240, 80, 80);
-                    special = "-fx-border-color: red; -fx-border-width: 0 0 1 0;";
-                    break;
-                } default: {
-                    color = Color.rgb(240, 240, 240);
-                    break;
-                }
-                
-            }
-            
-            syntaxHighlightedLabel.addAttributedText(content, color, col, special);
-            
-        }
-        
-        codeLine.setNetLeftBraces(netLeftBraces);
-        
-        return syntaxHighlightedLabel;
-        
+    public void refreshSyntaxHighlighting(UICodeLine line) {
+        delegate.syntaxHighlight(line);
     }
     
     @Override
@@ -200,7 +137,6 @@ public class ViewIDE extends UIView {
         } else if ( isInsideX_console  &&  isInsideY_codeArea ) {
             
             UINode.ignoreDidScroll = true;
-            
             console.delegatedScroll(dx, dy);
             
         } else {
@@ -250,16 +186,11 @@ public class ViewIDE extends UIView {
     @Override
     public void afterKeyDown() {
         
-        long start = System.currentTimeMillis();
-        
-        saveAndCompileAndShowErrorMessages();
-        
-        long end = System.currentTimeMillis();
-        
-        System.out.println("Saving, compilation and error messages took " + (end - start) + " ms.");
-        
-        
+        delegate.reactOnTextWritten(topLine);
         super.afterKeyDown();
+        
+        if (autosave) save(topLine.recursivelyFetchSourceCode());
+        
     }
     
     public void compileAndRun() {
@@ -271,7 +202,7 @@ public class ViewIDE extends UIView {
         compiler = new Compiler();
         compiler.compile(sourceCode, true);
         
-        Runtime runtime = new Runtime( compiler.getExecutable() , 4096, 4096 , console);
+        Runtime runtime = new Runtime( compiler.getExecutable() , 512, 512 , console);
         
         try {
             
@@ -284,37 +215,9 @@ public class ViewIDE extends UIView {
             
         }
         
-        
         runtime.printStack();
         runtime.printHeap();
     
-    }
-    
-    private void saveAndCompileAndShowErrorMessages() {
-        
-        String sourceCode = topLine.recursivelyFetchSourceCode();
-        
-        save(sourceCode);
-        
-        topLine.clearErrors();
-        
-        try {
-            
-            compiler = new Compiler();
-            compiler.compile(sourceCode, false);
-            
-        } catch (Exception e) {
-            
-            throw e;
-            
-        }
-        
-        System.out.println("Error");
-        for ( Error error : compiler.getErrors() ) {
-            topLine.pushDownError(error);
-            System.out.println(error);
-        }
-        
     }
     
     public void increaseNumberOfLines(int increase) {
@@ -354,7 +257,7 @@ public class ViewIDE extends UIView {
                 
         }
         
-        saveAndCompileAndShowErrorMessages();
+        delegate.reactOnTextWritten(topLine);
         
     }
     

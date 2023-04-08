@@ -163,4 +163,17 @@ public class FileInterface {
         
     }
     
+    public static void delete(String fileName, String extension) throws IOException {
+        
+        String path = "TDT4100-prosjekt-frederee/src/main/java/Project/Files/" + fileName + "." + extension;
+        File file = new File(path);
+        
+        boolean didDelete = file.delete();
+        
+        if (!didDelete) {
+            throw new IOException("Cannot delete file " + fileName + "." + extension);
+        }
+        
+    }
+    
 }

@@ -36,20 +36,28 @@ public class Scope {
         
     }
     
+    public void verifyUsedDeclarations() {
+        for (ScopeEntry entry : entries) {
+            if (!entry.wasReadFrom()) {
+                environment.submitNeverReadWarning(entry);
+            }
+        }
+    }
     
     public int getOffset() {
         return offset;
     }
     
-    public int getLocalIndex(String name, Token referenceToken) {
+    public int getLocalIndex(String name, Token referenceToken, boolean doNotMarkAsRead) {
         
         for ( ScopeEntry entry : entries ) if ( entry.getName().equals(name) ) {
-            return entry.getLocalIndex();
+            return entry.getLocalIndex(doNotMarkAsRead);
         }
         
         environment.submitError( new Error(
             "No variable " + name + " exists in this scope.", 
-            referenceToken
+            referenceToken,
+            "issue"
         ) );
         
         return 0;
@@ -86,7 +94,8 @@ public class Scope {
         if ( variableExists(declaration.getName()) ) {
             Error newError = new Error(
                 "The variable " + declaration.getName() + " has already been defined in this scope", 
-                declaration.getNameToken()
+                declaration.getNameToken(),
+                "issue"
             );
             environment.submitError(newError);
             return;

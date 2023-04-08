@@ -24,6 +24,7 @@ public class Parser {
     public static final int mask_heapAssign         =       1 << 3;
     public static final int mask_while              =       1 << 4;
     public static final int mask_println            =       1 << 5;
+    public static final int mask_print              =       1 << 6;
     // flere masks, for functionDef, functionCall, osv.
     // bruker 1 << n som maskeverdier
     
@@ -75,7 +76,11 @@ public class Parser {
     }
     
     public void submitErrorOnToken(String expected) {
-        Error newError = new Error("Expected " + expected + " but found '" + tokens.get(index).content() + "'", tokens.get(index));
+        Error newError = new Error(
+            "Expected " + expected + " but found '" + tokens.get(index).content() + "'"
+            , tokens.get(index),
+            "issue"
+        );
         errors.add(newError);
     }
     
@@ -91,7 +96,7 @@ public class Parser {
             line = tokens.get(index).getLine();
         }
         
-        Error newError = new Error(message, line);
+        Error newError = new Error(message, line, "issue");
         errors.add(newError);
     }
     
@@ -123,6 +128,7 @@ public class Parser {
         boolean allow_heapAssign    = ( masks & mask_heapAssign )   == mask_heapAssign;
         boolean allow_while         = ( masks & mask_while )        == mask_while;
         boolean allow_println       = ( masks & mask_println )      == mask_println;
+        boolean allow_print         = ( masks & mask_print)         == mask_print;
     
         while ( index < tokens.size() ) {
             
@@ -178,7 +184,15 @@ public class Parser {
                 
             } else if ( allow_println  &&  token.typeIs("keyword")  &&  token.contentIs("println") ) {
                 
-                Print print = parse_print(true);
+                Print println = parse_print(true);
+                
+                if (println != null) {
+                    statements.add(println);
+                }
+                
+            } else if ( allow_print  &&  token.typeIs("keyword")  &&  token.contentIs("print") ) {
+                
+                Print print = parse_print(false);
                 
                 if (print != null) {
                     statements.add(print);
@@ -331,7 +345,7 @@ public class Parser {
         
         incrementIndex();
         
-        return new Assignment(lhs, rhs, lhsToken);
+        return new Assignment(lhs, rhs, lhsToken, false);
         
     }
     
@@ -358,6 +372,10 @@ public class Parser {
             return null;
         }
         
+        if (body == null) {
+            return null;
+        }
+        
         incrementIndex();
         
         if ( inputIsExhausted()  ||  ! ( token().typeIs("keyword") && token().contentIs("else") ) ) {        // Ingen else etterpå
@@ -380,6 +398,10 @@ public class Parser {
         // if we find an 'if', the pattern 'else if' is recognized, and so we parse the next
         // conditional and add it as the 'otherwise' path in our original conditional.
         Conditional otherwise = parse_conditional();
+        
+        if (otherwise == null) {
+            return null;
+        }
         
         return new Conditional(condition, body, otherwise);
         
@@ -499,6 +521,18 @@ public class Parser {
         }
         
         incrementIndex();
+        
+        Token stringLiteralToken = argument.string_literal_in_expression();
+            
+        if (stringLiteralToken != null) {
+            
+            errors.add( new Error(
+                "String literal used directly in print statement will cause memory leak.", 
+                stringLiteralToken, 
+                "warning"
+            ) );
+            
+        }
         
         return new Print(is_println, output_type, argument);
         
