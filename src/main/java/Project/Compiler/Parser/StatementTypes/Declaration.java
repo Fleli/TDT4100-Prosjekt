@@ -1,5 +1,6 @@
 package Project.Compiler.Parser.StatementTypes;
 
+import Project.Compiler.InstructionGeneration.DebugRegion;
 import Project.Compiler.InstructionGeneration.InstructionList;
 import Project.Compiler.Lexer.Token;
 import Project.Compiler.NameBinding.Environment;
@@ -34,6 +35,8 @@ public class Declaration implements Statement {
     private Assignment assignment;
     
     private Token nameToken;
+    
+    private DebugRegion debugRegion;
     
     /**
      * Indicating whether this variable was ever read from. The variable is useless if it has never been
@@ -76,7 +79,7 @@ public class Declaration implements Statement {
      * @param initialRhs The initial {@code Expression} of this variable. Will be treated as an
      * {@code Assignment} object upon runtime, but not during compilation.
      */
-    public Declaration ( int pointerDepth , String name , Expression initialRhs , Token nameToken ) {
+    public Declaration(int pointerDepth, String name, Expression initialRhs, Token nameToken, Token start, Token end) {
         
         if ( pointerDepth < 0 ) throw new IllegalArgumentException("pointerDepth < 0 er ugyldig");
         
@@ -85,10 +88,14 @@ public class Declaration implements Statement {
         this.pointerDepth = pointerDepth;
         this.name = name;
         
+        debugRegion = new DebugRegion(start, end);
+        
         this.initialRhs = initialRhs;
-        this.assignment = new Assignment(name, initialRhs, nameToken, true);
+        this.assignment = new Assignment(name, initialRhs, nameToken, debugRegion);
         
         this.nameToken = nameToken;
+        
+        debugRegion = new DebugRegion(start);
         
     }
     
@@ -108,7 +115,7 @@ public class Declaration implements Statement {
     public InstructionList generateInstructions ( Environment environment ) {
         
         InstructionList list = new InstructionList();
-        list.add(2, this);                                        // Declaration betyr ny variabel (NEWVAR)
+        list.add(2, this, debugRegion);                                        // Declaration betyr ny variabel (NEWVAR)
         
         if ( initialRhs != null ) {
             list.add(assignment.generateInstructions(environment)); 
@@ -142,6 +149,11 @@ public class Declaration implements Statement {
         for ( int i = 0 ; i < pointerDepth ; i++ ) stars.append("*");
         stars = new StringBuilder("int" + stars.toString() + " " + name);
         return stars.toString();
+    }
+    
+    @Override
+    public int getLine() {
+        return debugRegion.start_line;
     }
 
 }

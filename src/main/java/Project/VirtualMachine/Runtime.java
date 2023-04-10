@@ -6,10 +6,14 @@ import java.util.List;
 import java.util.function.BinaryOperator;
 import java.util.function.UnaryOperator;
 
-import Project.Console;
+import Project.Compiler.InstructionGeneration.DebugRegion;
 import Project.Compiler.InstructionGeneration.Instruction;
 import Project.Compiler.InstructionGeneration.InstructionList;
+import Project.Compiler.Parser.StatementTypes.Declaration;
+import Project.Views.ViewIDE.DebugArea.ConsoleView;
+import Project.Views.ViewIDE.LanguageDelegates.Delegate_f.VMDB.VMDebugger;
 import Project.VirtualMachine.Heap.VMHeap;
+import Project.VirtualMachine.Heap.VMHeapArea;
 
 public class Runtime {
     
@@ -18,21 +22,27 @@ public class Runtime {
         "NOTEQ", "EQ", "MOD", "SMALLER", "GREATER", "NOTINUSE17", "NOTINUSE18", "NOTINUSE19", "NOTINUSE20",
         "NOTINUSE21", "BITNOT", "NEGATE", "NOTINUSE24", "NOTINUSE25", "NOTINUSE26", "NOTINUSE27", "PUSHINT",
         "PUSHVAR", "POPASSIGN", "ALLOCATE", "ADJUSTPC", "ADJUSTATZERO", "ADJUSTSP", "HEAPASSIGN", "HEAPFETCH",
-        "PRINTINT", "NEWLINE", "HEAPOFFSET"
+        "PRINTINT", "NEWLINE", "HEAPOFFSET", "DEALLOC"
     ) );
     
     private VMInstructionMemory instructionMemory;
     
-    private Console console;
+    private ConsoleView console;
     
     private VMHeap heap;
     private VMStack stack;
     
     private boolean shouldExit = false;
     
+    private boolean isDebug;
+    private VMDebugger debugger;
+    private DebugRegion activeDebugRegion;
+    
     public static boolean printDebugInfo = false;
     
-    public Runtime ( InstructionList instructions , int requiredStack , int requiredHeap , Console console ) {
+    private List<VMHeapArea> memoryLeaks;
+    
+    public Runtime(InstructionList instructions, int requiredStack, int requiredHeap, ConsoleView console) {
         
         this.console = console;
         this.instructionMemory = new VMInstructionMemory(instructions);
@@ -40,11 +50,57 @@ public class Runtime {
         heap = new VMHeap(requiredHeap);
         stack = new VMStack(requiredStack);
         
+        isDebug = false;
+        
+    }
+    
+    public Runtime(InstructionList instructions, int requiredStack, int requiredHeap, ConsoleView console, VMDebugger debugger) {
+        
+        this.console = console;
+        this.instructionMemory = new VMInstructionMemory(instructions);
+        
+        heap = new VMHeap(requiredHeap);
+        stack = new VMStack(requiredStack);
+        
+        isDebug = true;
+        this.debugger = debugger;
+        
+    }
+    
+    public List<VMHeapArea> getMemoryLeaks() {
+        return memoryLeaks;
+    }
+    
+    public DebugRegion getActiveDebugRegion() {
+        return activeDebugRegion;
     }
     
     public void clock() throws VMException {
         
         Instruction instruction = instructionMemory.getNextInstruction();
+        
+        if (isDebug) {
+            
+            activeDebugRegion = instruction.getDebugRegion();
+            
+            int opcode = instruction.getOpcode_or_operand();
+            debugger.setLastInstruction_opcode(opcode);
+            
+            String name = opcodeNames.get(opcode);
+            debugger.setLastInstruction_name(name);
+            
+            if ( opcode == 28 || opcode == 29 || opcode == 30 || opcode == 32 || opcode == 33 || opcode == 34 || opcode == 39 ) {
+                int operand = instructionMemory.peekInstruction();
+                debugger.setLastInstruction_operand(operand);
+            } else {
+                debugger.setLastInstruction_operand(null);
+            }
+            
+            int program_counter = instructionMemory.getProgramCounter();
+            debugger.setProgram_counter(program_counter);
+            
+        }
+        
         int opcode = instruction.getOpcode_or_operand();
         
         if ( printDebugInfo ) {
@@ -57,14 +113,14 @@ public class Runtime {
         switch ( opcode ) {
             
             case 0: {                           //      END
-                System.out.println("didSetShouldExit");
                 shouldExit = true;
+                memoryLeaks = heap.getUsed();
                 break;
             } case 1: {                         //      PRINT
                 instruction_PRINT();
                 break;
             } case 2: {                         //      NEWVAR
-                stack.push(0);
+                instruction_NEWVAR(instruction);
                 break;
             } case 3: {                         //      PUSHFRAME
                 stack.newFrame();
@@ -109,7 +165,7 @@ public class Runtime {
                 instruction_POPASSIGN();
                 break;
             } case 31: {
-                instruction_ALLOCATE();
+                instruction_ALLOCATE(instruction);
                 break;
             } case 32: {
                 instruction_ADJUSTPC();
@@ -135,6 +191,9 @@ public class Runtime {
             } case 39: {
                 instruction_HEAPOFFSET();
                 break;
+            } case 40: {
+                instruction_DEALLOC();
+                break;
             }
             default: {
                 throw new VMException("Unrecognized instruction " + opcode, "instruction decoder");
@@ -142,8 +201,12 @@ public class Runtime {
             
         }
         
-        if ( printDebugInfo ) {
+        if (printDebugInfo) {
             System.out.println("  Stack: " + stack.getFirst(16) + " ... ]");
+        }
+        
+        if (isDebug) {
+            debugger.refresh(stack.getStack());
         }
         
     }
@@ -153,9 +216,11 @@ public class Runtime {
     }
     
     public void run() throws VMException {
+        
         while ( !shouldExit ) {
             clock();
         }
+        
     }
     
     public void printStack() {
@@ -172,6 +237,24 @@ public class Runtime {
     
     public int getHeapElement ( int index ) throws VMException {
         return heap.getData(index);
+    }
+    
+    private void instruction_NEWVAR(Instruction instruction) throws VMException {
+        
+        stack.push(0);
+        
+        if (isDebug) {
+            
+            try {
+                Declaration declaration = (Declaration) instruction.getAssociatedStatement();
+                debugger.push_new_var(declaration);
+            } catch (Exception e) {
+                System.out.println("Exception: " + e.getLocalizedMessage());
+                throw new VMException("Could not convert " + instruction.getAssociatedStatement().description() + " to Declaration in NEWVAR", "execution");
+            }
+            
+        }
+        
     }
     
     private void instruction_PRINT() throws VMException {
@@ -275,10 +358,14 @@ public class Runtime {
         stack.writeToFramePointerOffset(value, offset);
     }
     
-    private void instruction_ALLOCATE() throws VMException {
+    private void instruction_ALLOCATE(Instruction instruction) throws VMException {
+        
+        int line = instruction.getAssociatedStatement().getLine();
+        
         int size = stack.pop();
-        int pointer = heap.alloc(size);
+        int pointer = heap.alloc(size, line);
         stack.push(pointer);
+        
     }
     
     private void instruction_ADJUSTPC() throws VMException {
@@ -300,8 +387,14 @@ public class Runtime {
     }
     
     private void instruction_ADJUSTSP() throws VMException {
+        
         int adjustment = instructionMemory.getNextInstruction().getOpcode_or_operand();
         stack.adjust_stack_pointer(adjustment);
+        
+        if (isDebug) {
+            debugger.readjust(stack.getStackPointer());
+        }
+        
     }
     
     private void instruction_HEAPASSIGN() throws VMException {
@@ -332,7 +425,11 @@ public class Runtime {
         int heap_base_offset = instructionMemory.getNextInstruction().getOpcode_or_operand();
         int heap_address = heap_base_address + heap_base_offset;
         heap.setData(heap_address, value);
-        System.out.println("HEAPOFFSET: " + heap_address + " " + value);
+    }
+    
+    private void instruction_DEALLOC() throws VMException {
+        int pointer = stack.pop();
+        heap.dealloc(pointer);
     }
     
     // TODO: Her kan flere instruksjoner legges til (merker med TODO slik at blålinja dukker opp)

@@ -43,6 +43,7 @@ OpCode  Instruction     Description             Clarification
 38      NEWLINE                                 Delegates to console, runs ConsoleInstance.newLine()
 39      HEAPOFFSET                              Write top of stack (popped) to next top (peeked) plus offset (operand)
 -> Operand:     int offset (Added to the peeked heap location at top of stack after value to write is popped)
+40      DEALLOC                                 Fetch pointer from stack (pop), notify heap of deallocation of this
 
 NOTE to 3, 4:   These will not cover all function call functionality, as return addresses
 must be pushed & popped like normal variables upon call & return.

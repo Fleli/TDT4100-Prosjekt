@@ -5,18 +5,24 @@ f$primes$Frederik Edvardsen$7$4$2023$7$4$2023$# Created by Frederik Edvardsen on
 int limit = 1000;
 int number = 3;
 
-int* primes = alloc(limit / 5); 
+int* primes = alloc(limit / 4);
 heap(primes) = 2;
 int count = 1;
 
+int* dude =
+"ja nei";
+
+int* dude2 = 
+alloc(50);
+
 println int 2;
 
-while number < limit { 
+while number < limit {
     
-    int isPrime = 1;
+    int isPrime = 1; 
     int factor = 2;
     
-    while factor < number {
+    while (factor < number) {
         
         # Ordne feilen med at feilsymbol dukker opp, uten at feil*meldinger* dukker opp
         # F.eks. bare ved å skrive {} en plass.
@@ -39,29 +45,24 @@ while number < limit {
         
         println int number;
         
-        heap(primes + count) = number;
+        heap(primes + count) = number; 
         count = count + 1;
         
     }
+    
+    # Når man er ferdig med f.eks. if/while bør kanskje neste } markeres i stedet
+    # for den delen hvor den evalueres, slik det er nå
     
     number = number + 2;
        
 }
 
-#int* string_endComment_1 = "Det finnes ";
-#int* string_endComment_2 = " primtall mindre enn ";
-#int* string_endComment_3 = ".";
-
-print   string          "Det finnes ";  
+print   string          "Det finnes ";
 print   int             count - 1;
-print   string          " primtall som er mindre enn ";
-print   int             limit; 
-println string          "."; 
+print   string          " primtall som er mindre enn "; 
+print   int             limit;
+println string          ".";
 
-int a; int b; 
+int* x = alloc(500);
 
-#print string string_endComment_1;
-#print int (count - 1);
-#print string string_endComment_2;
-#print int limit;
-#println string string_endComment_3;
+dealloc x;

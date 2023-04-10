@@ -1,7 +1,8 @@
-package Project.Views.ViewIDE;
+package Project.Views.ViewIDE.LanguageDelegates.Delegate_f;
 
 import Project.Program;
 import Project.UIElements.UIButton;
+import Project.UIElements.UICodeLine;
 import Project.UIElements.UINode;
 import Project.UIElements.UISize;
 import javafx.geometry.Point2D;
@@ -10,7 +11,7 @@ import javafx.scene.paint.Color;
 import javafx.scene.shape.Rectangle;
 import javafx.scene.text.Font;
 
-public class IDETopBand extends UINode {
+public class TopBand_f extends UINode {
     
     private static final double padding = 30;
     private static final double textSpace = 140;
@@ -21,9 +22,11 @@ public class IDETopBand extends UINode {
     private UIButton button_compile;
     private UIButton button_debug;
     
+    private UIButton button_debug_clock;
+    
     private double height;
     
-    public IDETopBand(ViewIDE ide, Color bandColor, double height) {
+    public TopBand_f(Color bandColor, double height, Delegate_f delegate, UICodeLine topLine) {
         
         super();
         
@@ -46,7 +49,9 @@ public class IDETopBand extends UINode {
         init_button(button_debug    , 1000      , "diagram.png" );
         
         button_run.setActionInside( () -> {
-            ide.compileAndRun();
+            delegate.clearDebugArea();
+            delegate.requestDebugAreaView(0);
+            delegate.run();
         } );
         
         button_compile.setActionInside( () -> {
@@ -54,8 +59,15 @@ public class IDETopBand extends UINode {
         } );
         
         button_debug.setActionInside( () -> {
-            // Start debugging, må se grundig på hvordan dette skal fungere (og
-            // kanskje gjøre litt om på hele ViewIDE-strukturen).
+            delegate.debug();
+            // Legg til debug-knapper
+        } );
+        
+        button_debug_clock = new UIButton(zero, buttonSize, "Debugclock");
+        init_button(button_debug_clock, 0, "ferdig.png");
+        
+        button_debug_clock.setActionInside( () -> {
+            delegate.debugger_nextClock(topLine);
         } );
         
     }

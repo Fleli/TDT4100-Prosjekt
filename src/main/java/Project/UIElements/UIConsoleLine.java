@@ -1,6 +1,6 @@
 package Project.UIElements;
 
-import Project.Views.ViewIDE.ViewIDEConsole;
+import Project.Views.ViewIDE.DebugArea.DebugAreaView;
 import javafx.scene.control.Label;
 import javafx.scene.paint.Color;
 import javafx.scene.text.Font;
@@ -17,11 +17,11 @@ public class UIConsoleLine extends UINode {
     
     private UIConsoleLine line_below;
     
-    private ViewIDEConsole console;
+    private DebugAreaView debugAreaView;
     
-    public UIConsoleLine(double fontSize, double maxChars, ViewIDEConsole console) {
+    public UIConsoleLine(double fontSize, double maxChars, DebugAreaView debugAreaView) {
         
-        this.console = console;
+        this.debugAreaView = debugAreaView;
         
         this.maxChars = maxChars;
         this.fontSize = fontSize;
@@ -34,11 +34,11 @@ public class UIConsoleLine extends UINode {
         
         setViewOrder(-2);
         
-        console.setCurrentLine(this);
+        debugAreaView.setCurrentLine(this);
         
     }
     
-    public void print(String text) {
+    public void print(String text, Color color, String style) {
         
         int index = 0;
         
@@ -52,7 +52,7 @@ public class UIConsoleLine extends UINode {
                 
                 newLine();
                 String remaining = text.substring(index);
-                line_below.print(remaining);
+                line_below.print(remaining, color, style);
                 
                 break;
                 
@@ -60,7 +60,7 @@ public class UIConsoleLine extends UINode {
                 
                 newLine();
                 String remaining = text.substring(index);
-                line_below.print(remaining);
+                line_below.print(remaining, color, style);
                 
                 break;
                 
@@ -73,16 +73,22 @@ public class UIConsoleLine extends UINode {
             
         }
         
+        label.setStyle(style);
+        label.setTextFill(color);
         label.setText(this.text.toString());
         
     }
     
+    public void print(String text) {
+        print(text, Color.BLACK, "");
+    }
+    
     public void newLine() {
         
-        UIConsoleLine newBelow = new UIConsoleLine(fontSize, maxChars, console);
+        UIConsoleLine newBelow = new UIConsoleLine(fontSize, maxChars, debugAreaView);
         newBelow.setTranslateY(fontSize + spacing);
         
-        console.incrementLineCount();
+        debugAreaView.incrementLineCount();
         addChild(newBelow);
         
         line_below = newBelow;

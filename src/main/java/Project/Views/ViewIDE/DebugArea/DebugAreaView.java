@@ -1,15 +1,17 @@
-package Project.Views.ViewIDE;
+package Project.Views.ViewIDE.DebugArea;
 
-import Project.Console;
 import Project.UIElements.UIConsoleLine;
 import Project.UIElements.UINode;
 import javafx.scene.paint.Color;
 import javafx.scene.shape.Rectangle;
 
-public class ViewIDEConsole extends UINode implements Console {
+public class DebugAreaView extends UINode {
     
     private static final double fontSize = 16;
+    private static final double spacing = 6;
     private static final double linePadding = 5;
+    
+    private static final double topPadding = 6;
     
     private UIConsoleLine topLine;
     private UIConsoleLine currentLine;
@@ -18,17 +20,35 @@ public class ViewIDEConsole extends UINode implements Console {
     
     private int lineCount = 1;
     
-    public ViewIDEConsole(double width, double height) {
-        
-        super();
+    private int max_chars;
+    
+    public DebugAreaView(double width, double height) {
         
         background = new Rectangle(width, height);
-        background.setFill(Color.rgb(50, 75, 75));
-        background.setViewOrder(-1);
+        background.setFill(Color.AQUAMARINE);
         getChildren().add(background);
+        
+        max_chars = (int) Math.floor(width / (fontSize * 0.6));
         
         clear();
         
+    }
+    
+    public double getFontSize() {
+        return fontSize;
+    }
+    
+    public double getSpacing() {
+        return spacing;
+    }
+    
+    /**
+     * Should be overridden by subclasses to refresh the DebugAreaView's UI
+     * NOTE: super.refresh() must still be called, since this class handles
+     * clearing (preparation) of the console.
+     */
+    public void refresh() {
+        clear();
     }
     
     public void delegatedScroll(double dx, double dy) {
@@ -41,6 +61,10 @@ public class ViewIDEConsole extends UINode implements Console {
             topLine.setTranslateY(newTY);
             fitInBounds();
             
+        } else {
+            
+            System.out.println("Topline was null");
+            
         }
         
     }
@@ -49,20 +73,23 @@ public class ViewIDEConsole extends UINode implements Console {
         lineCount++;
     }
     
-    @Override
     public void print(String text) {
         currentLine.print(text);
     }
     
-    @Override
+    public void print(String text, Color color, String style) {
+        currentLine.print(text, color, style);
+    }
+    
     public void clear() {
         
         if ( topLine != null ) {
             getChildren().remove(topLine);
         }
         
-        topLine = new UIConsoleLine(fontSize, 20, this);
+        topLine = new UIConsoleLine(fontSize, max_chars, this);
         topLine.setTranslateX(linePadding);
+        topLine.setTranslateY(topPadding);
         
         lineCount = 1;
         
@@ -71,7 +98,6 @@ public class ViewIDEConsole extends UINode implements Console {
         
     }
     
-    @Override
     public void newLine() {
         print("\n");
     }
@@ -84,11 +110,15 @@ public class ViewIDEConsole extends UINode implements Console {
         
         double y = topLine.getTranslateY();
         
-        y = Math.min(y, 0);
-        y = Math.max(y, (2 - lineCount) * (fontSize + UIConsoleLine.spacing));
+        y = Math.min(y, topPadding);
+        y = Math.max(y, (2 - lineCount) * (fontSize + UIConsoleLine.spacing) + topPadding);
         
         topLine.setTranslateY(y);
         
+    }
+    
+    public void setFill(int r, int g, int b) {
+        background.setFill(Color.rgb(r, g, b));
     }
     
 }

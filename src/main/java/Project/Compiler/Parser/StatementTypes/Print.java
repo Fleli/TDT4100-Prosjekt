@@ -4,7 +4,9 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
+import Project.Compiler.InstructionGeneration.DebugRegion;
 import Project.Compiler.InstructionGeneration.InstructionList;
+import Project.Compiler.Lexer.Token;
 import Project.Compiler.NameBinding.Environment;
 import Project.Compiler.Parser.Statement;
 import Project.Compiler.Parser.Expressions.Expression;
@@ -20,7 +22,9 @@ public class Print implements Statement {
     
     private Expression argument;
     
-    public Print(boolean is_println, String print_type, Expression argument) {
+    private DebugRegion debugRegion;
+    
+    public Print(boolean is_println, String print_type, Expression argument, Token start, Token end) {
         
         if (argument == null) {
             throw new IllegalArgumentException("Expression must be non-null");
@@ -33,6 +37,8 @@ public class Print implements Statement {
         this.is_println = is_println;
         this.print_type = print_type;
         this.argument = argument;
+        
+        debugRegion = new DebugRegion(start, end);
         
     }
     
@@ -53,12 +59,12 @@ public class Print implements Statement {
         if (print_type.equals("int")) {
             
             // Logikken for int-printing ligger i VM, så vi generer bare selve print-instruksjonen.
-            instructions.add(37, this);
+            instructions.add(37, this, debugRegion);
             
         } else if (print_type.equals("string")) {
             
             // Logikken for string-printing ligger i VM, så vi generer bare selve print-instruksjonen.
-            instructions.add(1, this);
+            instructions.add(1, this, debugRegion);
             
         } else {
             
@@ -68,7 +74,7 @@ public class Print implements Statement {
         
         // Legg også (optionally) til \n-printing.
         if (is_println) {
-            instructions.add(38, this);
+            instructions.add(38, this, debugRegion);
         }
         
         return instructions;
@@ -80,6 +86,9 @@ public class Print implements Statement {
         return "print (line: " + is_println + "): " + argument.description();
     }
     
-    
+    @Override
+    public int getLine() {
+        return debugRegion.start_line;
+    }
     
 }

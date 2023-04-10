@@ -2,19 +2,21 @@ package Project.Compiler.Parser.StatementTypes;
 
 import java.util.List;
 
+import Project.Compiler.InstructionGeneration.DebugRegion;
 import Project.Compiler.InstructionGeneration.InstructionList;
+import Project.Compiler.Lexer.Token;
 import Project.Compiler.NameBinding.Environment;
 import Project.Compiler.Parser.Statement;
 import Project.Compiler.Parser.Expressions.Expression;
 
 public class While implements Statement {
     
-    
     private Expression condition;
     private List<Statement> body;
     
+    private DebugRegion debugRegion;
     
-    public While ( Expression condition , List<Statement> body ) {
+    public While(Expression condition, List<Statement> body, Token start, Token leftBrace) {
         
         if ( condition == null  ||  body == null ) {
             throw new IllegalArgumentException("Arguments of While constructor must be non-null");
@@ -23,9 +25,9 @@ public class While implements Statement {
         this.condition = condition;
         this.body = body;
         
+        debugRegion = new DebugRegion(start, leftBrace);
+        
     }
-    
-    
     
     @Override
     public void bind_names(Environment environment) {
@@ -77,8 +79,8 @@ public class While implements Statement {
         }
         
         // Adjust stack pointer back when exiting the while statement's body
-        bodyInstructions.add(34, this);                         // ADJUSTSP instruction
-        bodyInstructions.add(-numberOfDeclarations, this);      // For each declaration, adjust by -1
+        bodyInstructions.add(34, this, debugRegion);                         // ADJUSTSP instruction
+        bodyInstructions.add(-numberOfDeclarations, this, debugRegion);      // For each declaration, adjust by -1
         
         // Now we know how big the body of the while statement is. However, in 
         // order to exit the body and reevaluate the while statement's condition,
@@ -93,8 +95,8 @@ public class While implements Statement {
         int exit_body_adjustment = -(bodySize + evaluationSize + 4);
         
         // The adjustment to exit the body should actually be a part of the body itself.
-        bodyInstructions.add(32, this);                         // Adjust program counter
-        bodyInstructions.add(exit_body_adjustment, this);       // Operand: the program counter adjustment
+        bodyInstructions.add(32, this, debugRegion);                         // Adjust program counter
+        bodyInstructions.add(exit_body_adjustment, this, debugRegion);       // Operand: the program counter adjustment
         
         // Now the while statement's body is complete. If the condition
         // evaluation fails, we should skip past the while statement's
@@ -102,8 +104,8 @@ public class While implements Statement {
         // that the body's instructions take up. We add this adjustment
         // to the evaluation instruction list
         int condition_is_zero_adjustment = bodyInstructions.size();
-        conditionEvaluationInstructions.add(33, this);                              // Adjust PC if pop() (condition evaluation) yields 0
-        conditionEvaluationInstructions.add(condition_is_zero_adjustment, this);    // If zero, adjust by the body's size
+        conditionEvaluationInstructions.add(33, this, debugRegion);                              // Adjust PC if pop() (condition evaluation) yields 0
+        conditionEvaluationInstructions.add(condition_is_zero_adjustment, this, debugRegion);    // If zero, adjust by the body's size
         
         // The first part of the while loop is condition evaluation and
         // conditional program counter adjustment.
@@ -134,6 +136,11 @@ public class While implements Statement {
         
         return sb + "\n}";
         
+    }
+    
+    @Override
+    public int getLine() {
+        return debugRegion.start_line;
     }
     
 }

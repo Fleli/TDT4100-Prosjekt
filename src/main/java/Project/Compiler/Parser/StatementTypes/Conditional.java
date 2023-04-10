@@ -2,12 +2,16 @@ package Project.Compiler.Parser.StatementTypes;
 
 import java.util.List;
 
+import Project.Compiler.InstructionGeneration.DebugRegion;
 import Project.Compiler.InstructionGeneration.InstructionList;
+import Project.Compiler.Lexer.Token;
 import Project.Compiler.NameBinding.Environment;
 import Project.Compiler.Parser.Statement;
 import Project.Compiler.Parser.Expressions.Expression;
 
 public class Conditional implements Statement {
+    
+    private DebugRegion debugRegion;
     
     /**
      * The condition, which when evaluated decides
@@ -33,7 +37,7 @@ public class Conditional implements Statement {
     private Conditional otherwise;
     
     
-    public Conditional ( Expression condition , List<Statement> body , Conditional otherwise ) {
+    public Conditional(Expression condition, List<Statement> body, Conditional otherwise, Token start, Token leftBrace) {
         
         if ( condition == null  ||  body == null  ||  otherwise == null ) {
             throw new IllegalArgumentException("All arguments must be non-null.");
@@ -43,6 +47,8 @@ public class Conditional implements Statement {
         this.body = body;
         this.otherwise = otherwise;
         
+        debugRegion = new DebugRegion(start, leftBrace);
+        
     }
     
     /**
@@ -50,7 +56,7 @@ public class Conditional implements Statement {
      * @param condition The {}
      * @param body
      */
-    public Conditional ( Expression condition , List<Statement> body ) {
+    public Conditional (Expression condition, List<Statement> body, Token start, Token leftBrace) {
         
         if ( condition == null  ||  body == null ) {
             throw new IllegalArgumentException("All arguments must be non-null yo");
@@ -58,6 +64,8 @@ public class Conditional implements Statement {
         
         this.condition = condition;
         this.body = body;
+        
+        debugRegion = new DebugRegion(start, leftBrace);
         
     }
     
@@ -103,8 +111,8 @@ public class Conditional implements Statement {
         }
         
         // Juster stack pointer tilbake basert på antall declarations.
-        bodyInstructions.add(34, this);                         // ADJUSTSP instruction
-        bodyInstructions.add(-numberOfDeclarations, this);      // For each declaration, adjust by -1
+        bodyInstructions.add(34, this, debugRegion);                         // ADJUSTSP instruction
+        bodyInstructions.add(-numberOfDeclarations, this, debugRegion);      // For each declaration, adjust by -1
         
         // Two paths, depending on whether an 'otherwise' path is added
         if ( otherwise == null ) {
@@ -113,8 +121,8 @@ public class Conditional implements Statement {
             int adjustment_at_condition_fail = bodyInstructions.size();
             
             // Legg til ADJUSTATZERO (33) og operand (adjustment) i instruksjonslisten
-            instructions.add(33, this);
-            instructions.add(adjustment_at_condition_fail, this);
+            instructions.add(33, this, debugRegion);
+            instructions.add(adjustment_at_condition_fail, this, debugRegion);
             
             // Legg til statement-bodyen nå, altså etter conditional adjust-kommandoen
             instructions.add(bodyInstructions);
@@ -131,8 +139,8 @@ public class Conditional implements Statement {
             // AJDUSTPC-instruksjon. Antall instruksjoner den skal justeres med, er nøyaktig lik
             // antall otherwiseInstructions (fordi det er disse som skal hoppes over).
             int adjustment = otherwiseInstructions.size();
-            bodyInstructions.add(32, this);             // ADJUSTPC
-            bodyInstructions.add(adjustment, this);     // Operand: adjustment
+            bodyInstructions.add(32, this, debugRegion);             // ADJUSTPC
+            bodyInstructions.add(adjustment, this, debugRegion);     // Operand: adjustment
             
             // Nå er det klart for å evaluere condition. Dersom den evalueres til 0, skal
             // programmet hoppe videre til 'else if'-clausen. Det betyr at PC-adjustment
@@ -144,8 +152,8 @@ public class Conditional implements Statement {
             // skal vi justere program counter slik at vi i stedet evaluerer otherwise
             // sin kode. Ellers skal vi fallthrough til body, som selv sørger for å
             // unngå fallthrough til otherwise.
-            instructions.add(33, this);                             // ADJUSTATZERO (33) Juster PC dersom pop() == 0
-            instructions.add(adjustment_at_condition_fail, this);   // Operand: justering dersom pop() == 0
+            instructions.add(33, this, debugRegion);                             // ADJUSTATZERO (33) Juster PC dersom pop() == 0
+            instructions.add(adjustment_at_condition_fail, this, debugRegion);   // Operand: justering dersom pop() == 0
             
             // Vi har nå utført utregning og sjekk av condition. Dersom den evalueres til
             // et tall ulik 0 (ADJUSTATZERO ovenfor *ikke* justerer) skal vi fallthrough
@@ -181,6 +189,11 @@ public class Conditional implements Statement {
         
         return sb + "\n}";
         
+    }
+    
+    @Override
+    public int getLine() {
+        return debugRegion.start_line;
     }
     
 }

@@ -10,6 +10,7 @@ import Project.Compiler.Parser.Expressions.Expression;
 import Project.Compiler.Parser.Expressions.ExpressionParser;
 import Project.Compiler.Parser.StatementTypes.Assignment;
 import Project.Compiler.Parser.StatementTypes.Conditional;
+import Project.Compiler.Parser.StatementTypes.Dealloc;
 import Project.Compiler.Parser.StatementTypes.Declaration;
 import Project.Compiler.Parser.StatementTypes.HeapAssignment;
 import Project.Compiler.Parser.StatementTypes.Print;
@@ -25,8 +26,15 @@ public class Parser {
     public static final int mask_while              =       1 << 4;
     public static final int mask_println            =       1 << 5;
     public static final int mask_print              =       1 << 6;
+    public static final int mask_dealloc            =       1 << 7;
     // flere masks, for functionDef, functionCall, osv.
     // bruker 1 << n som maskeverdier
+    
+    private static final int global_mask            =       511;
+    
+    public static final List<String> global_panic_terminators = new ArrayList<String>( Arrays.asList(
+        "keyword", ";"
+    ) );
     
     private ExpressionParser expressionParser = new ExpressionParser(this);
     
@@ -84,6 +92,15 @@ public class Parser {
         errors.add(newError);
     }
     
+    public void submitErrorOnToken_withFullSpecifiedMessage(String message) {
+        Error newError = new Error(
+            message,
+            tokens.get(index),
+            "issue"
+        );
+        errors.add(newError);
+    }
+    
     public void submitErrorOnCurrentLine(String message) {
         
         int line = 0;
@@ -107,14 +124,13 @@ public class Parser {
         
         index = 0;
         
-        statements = parse ( 127 , new ArrayList<String>() );
+        statements = parse ( global_mask , new ArrayList<String>() );
         
     }
     
     /**
      * Executes parsing of the previously passed-in tokens.
      * @param masks An {@code int} specifying which statement types are allowed in the current parse. 
-     * Use 127 to allow all kinds of existing statements.
      */
     private List<Statement> parse ( int masks , List<String> returnTokenTypes ) {
         
@@ -129,6 +145,7 @@ public class Parser {
         boolean allow_while         = ( masks & mask_while )        == mask_while;
         boolean allow_println       = ( masks & mask_println )      == mask_println;
         boolean allow_print         = ( masks & mask_print)         == mask_print;
+        boolean allow_dealloc       = ( masks & mask_dealloc )      == mask_dealloc;
     
         while ( index < tokens.size() ) {
             
@@ -144,6 +161,8 @@ public class Parser {
                 
                 if ( declaration != null ) {
                     statements.add(declaration);
+                } else {
+                    panic(global_panic_terminators);
                 }
                 
             } else if ( allow_assignments  &&  token.typeIs("identifier") ) {
@@ -152,6 +171,8 @@ public class Parser {
                 
                 if ( assignment != null ) {
                     statements.add(assignment);
+                } else {
+                    panic(global_panic_terminators);
                 }
                 
             } else if ( allow_conditionals  &&  token.typeIs("keyword")  &&  token.contentIs("if") ) {
@@ -160,6 +181,8 @@ public class Parser {
                 
                 if ( conditional != null ) {
                     statements.add(conditional);
+                } else {
+                    panic(global_panic_terminators);
                 }
                 
             } else if ( allow_heapAssign  &&  token.typeIs("keyword")  &&  token.contentIs("heap") ) {
@@ -168,6 +191,8 @@ public class Parser {
                 
                 if ( heapAssignment != null ) {
                     statements.add(heapAssignment);
+                } else {
+                    panic(global_panic_terminators);
                 }
                 
             } else if ( allow_while  &&  token.typeIs("keyword")  &&  token.contentIs("while") ) {
@@ -176,6 +201,8 @@ public class Parser {
                 
                 if ( loop != null ) {
                     statements.add(loop);
+                } else {
+                    panic(global_panic_terminators);
                 }
                 
             } else if ( token.typeIs(";") ) {
@@ -188,6 +215,8 @@ public class Parser {
                 
                 if (println != null) {
                     statements.add(println);
+                } else {
+                    panic(global_panic_terminators);
                 }
                 
             } else if ( allow_print  &&  token.typeIs("keyword")  &&  token.contentIs("print") ) {
@@ -196,6 +225,18 @@ public class Parser {
                 
                 if (print != null) {
                     statements.add(print);
+                } else {
+                    panic(global_panic_terminators);
+                }
+                
+            } else if ( allow_dealloc  &&  token.typeIs("keyword")  &&  token.contentIs("dealloc") ) {
+                
+                Dealloc dealloc = parse_dealloc();
+                
+                if (dealloc != null) {
+                    statements.add(dealloc);
+                } else {
+                    panic(global_panic_terminators);
                 }
                 
             }
@@ -243,6 +284,8 @@ public class Parser {
     }
     
     private Declaration parse_declaration() {
+        
+        Token startToken = token();
         
         // vi vet at første er int, så vi går videre til neste
         incrementIndex();
@@ -308,9 +351,11 @@ public class Parser {
             return null;
         }
         
+        Token endToken = token();
+        
         incrementIndex();
         
-        return new Declaration(pointerDepth, name, rhs, nameToken);
+        return new Declaration(pointerDepth, name, rhs, nameToken, startToken, endToken);
         
     }
     
@@ -343,13 +388,17 @@ public class Parser {
             return null;
         }
         
+        Token semicolon = token();
+        
         incrementIndex();
         
-        return new Assignment(lhs, rhs, lhsToken, false);
+        return new Assignment(lhs, rhs, lhsToken, semicolon);
         
     }
     
     private Conditional parse_conditional() {
+        
+        Token startToken = token();
         
         // Første er 'if', som vi allerede har bekreftet
         incrementIndex();
@@ -364,9 +413,11 @@ public class Parser {
             return null;
         }
         
+        Token leftBrace = token();
+        
         incrementIndex();
         
-        List<Statement> body = parse(127, new ArrayList<String>( Arrays.asList ( "}" ) ) );
+        List<Statement> body = parse(global_mask, new ArrayList<String>( Arrays.asList ( "}" ) ) );
         
         if ( isExhaustedOrNotSpecificType("}", "Expected } to end conditional body") ) {
             return null;
@@ -379,7 +430,7 @@ public class Parser {
         incrementIndex();
         
         if ( inputIsExhausted()  ||  ! ( token().typeIs("keyword") && token().contentIs("else") ) ) {        // Ingen else etterpå
-            return new Conditional(condition, body);
+            return new Conditional(condition, body, startToken, leftBrace);
         }
         
         // vi *vet* at else kommer nå, fordi dette er det eneste tilfellet hvor if ovenfor feiler
@@ -403,11 +454,13 @@ public class Parser {
             return null;
         }
         
-        return new Conditional(condition, body, otherwise);
+        return new Conditional(condition, body, otherwise, startToken, leftBrace);
         
     }
     
     private HeapAssignment parse_heapAssignment() {
+        
+        Token startToken = token();
         
         // We know that we've already encountered the "heap" keyword, so we skip past it.
         incrementIndex();
@@ -440,13 +493,17 @@ public class Parser {
             return null;
         }
         
+        Token endToken = token();
+        
         incrementIndex();
         
-        return new HeapAssignment(address, value);
+        return new HeapAssignment(address, value, startToken, endToken);
         
     }
     
     private While parse_while() {
+        
+        Token startToken = token();
         
         // We know that we must have encountered the keyword "while", so we skip past it
         incrementIndex();
@@ -463,13 +520,15 @@ public class Parser {
             return null;
         }
         
+        Token leftBrace = token();
+        
         // Current is '{', so we skip past it
         incrementIndex();
         
         // Next, we generate the loop's body. The body may contain any statement (for now)
-        // so we use 127 for its mask. Also, the body stops when we hit '}', which indicates
+        // so we use 511 for its mask. Also, the body stops when we hit '}', which indicates
         // the end of the "while" statement
-        int statement_masks = 127;                  // TODO: Adjust this mask later on
+        int statement_masks = global_mask;                  // TODO: Adjust this mask later on
         List<String> terminator = new ArrayList<String>( Arrays.asList( "}" ) );
         List<Statement> body = parse(statement_masks, terminator);
         
@@ -486,12 +545,13 @@ public class Parser {
         // Current token is confirmed to be '}', so we skip past it
         incrementIndex();
         
-        return new While(condition, body);
+        return new While(condition, body, startToken, leftBrace);
         
     }
     
-    public Print parse_print(boolean is_println) {
+    private Print parse_print(boolean is_println) {
         
+        Token startToken = token();
         incrementIndex();
         
         if ( inputIsExhausted() ) {
@@ -520,6 +580,8 @@ public class Parser {
             return null;
         }
         
+        Token endToken = token();
+        
         incrementIndex();
         
         Token stringLiteralToken = argument.string_literal_in_expression();
@@ -534,7 +596,38 @@ public class Parser {
             
         }
         
-        return new Print(is_println, output_type, argument);
+        return new Print(is_println, output_type, argument, startToken, endToken);
+        
+    }
+    
+    private Dealloc parse_dealloc() {
+        
+        // Vi fetcher 'dealloc'-token for debuggingens skyld
+        Token first = token();
+        
+        // Vi vet at første token var dealloc, så vi skipper denne.
+        incrementIndex();
+        
+        // Så skal vi ha en expression
+        Expression pointer = expressionParser.parse(1);
+        
+        if (pointer == null) {
+            return null;
+        }
+        
+        // Til slutt forventer vi et semikolon
+        if (isExhaustedOrNotSpecificType(";", "Expected ; to complete deallocation.")) {
+            return null;
+        }
+        
+        Token end = token();
+        incrementIndex();
+        
+        if (first == null || end == null) {
+            System.exit(1);
+        }
+        
+        return new Dealloc(pointer, first, end);
         
     }
     
@@ -542,6 +635,22 @@ public class Parser {
     
     public Token token() {
         return tokens.get(index);
+    }
+    
+    public void panic(List<String> terminators) {
+        
+        while (index < tokens.size()) {
+            
+            Token token = token();
+            
+            if (terminators.contains(token.type())) {
+                return;
+            }
+            
+            incrementIndex();
+            
+        }
+        
     }
     
     /**
@@ -553,20 +662,20 @@ public class Parser {
     * @return Will return {@code true} if either of the two conditions fail (and an error message
     * is submitted), and return {@code false} otherwise (if "everything is fine").
     */
-   public boolean isExhaustedOrNotSpecificType ( String expectedType , String exhaustedMessage ) {
-       
-       if ( inputIsExhausted() ) {
-           submitErrorOnCurrentLine(exhaustedMessage);
-           return true;
-       }
-       
-       if ( !token().typeIs(expectedType) ) {
-           submitErrorOnToken(expectedType);
-           return true;
-       }
-       
-       return false;
-       
-   }
+    public boolean isExhaustedOrNotSpecificType ( String expectedType , String exhaustedMessage ) {
+        
+        if ( inputIsExhausted() ) {
+            submitErrorOnCurrentLine(exhaustedMessage);
+            return true;
+        }
+        
+        if ( !token().typeIs(expectedType) ) {
+            submitErrorOnToken(expectedType);
+            return true;
+        }
+        
+        return false;
+        
+    }
     
 }

@@ -4,6 +4,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
+import Project.Compiler.InstructionGeneration.DebugRegion;
 import Project.Compiler.InstructionGeneration.InstructionList;
 import Project.Compiler.Lexer.Token;
 import Project.Compiler.NameBinding.Environment;
@@ -31,9 +32,25 @@ public class Expression implements Statement {
     private Expression arg2;
     private Operator operator;
     
-    public Expression ( int literalValue ) {
+    private DebugRegion debugRegion;
+    
+    public Expression(int literalValue, Token token) {
+        
         type = "literal";
+        
         this.literalValue = literalValue;
+        
+        debugRegion = new DebugRegion(token);
+        
+    }
+    
+    public Expression(int literalValue, DebugRegion debugRegion) {
+        
+        type = "literal";
+        
+        this.literalValue = literalValue;
+        this.debugRegion = debugRegion;
+        
     }
     
     /**
@@ -60,19 +77,32 @@ public class Expression implements Statement {
             
         }
         
+        debugRegion = new DebugRegion(token);
+        
     }
     
-    public Expression ( Expression arg1 , Operator operator ) {
+    public Expression(Expression arg1, Operator operator, Token operatorToken) {
+        
         type = "unary";
+        
         this.arg1 = arg1;
         this.operator = operator;
+        
+        DebugRegion operatorRegion = new DebugRegion(operatorToken);
+        debugRegion = new DebugRegion(operatorRegion, arg1.debugRegion);
+        
     }
     
     public Expression ( Expression arg1 , Expression arg2 , Operator operator ) {
+        
         type = "binary";
+        
         this.arg1 = arg1;
         this.arg2 = arg2;
         this.operator = operator;
+        
+        debugRegion = new DebugRegion(arg1.debugRegion, arg2.debugRegion);
+        
     }
     
     private static final List<String> singleExpressionTypes = new ArrayList<String>( Arrays.asList(
@@ -85,7 +115,7 @@ public class Expression implements Statement {
      * @param expression The {@code Expression} object to assign to {@code arg1}.
      * @param type The {@code type} object (a {@code String}) of this {@code Expression}.
      */
-    public Expression ( Expression expression , String type ) {
+    public Expression ( Expression expression , String type , Token debugToken ) {
         
         if ( !singleExpressionTypes.contains(type) ) {
             throw new IllegalArgumentException("Cannot create single expression object with unknown type " + type);
@@ -93,6 +123,8 @@ public class Expression implements Statement {
         
         this.type = type;
         this.arg1 = expression;
+        
+        this.debugRegion = new DebugRegion(debugToken);
         
     }
     
@@ -136,32 +168,32 @@ public class Expression implements Statement {
             
             instructions.add(arg1.generateInstructions(environment));
             instructions.add(arg2.generateInstructions(environment));
-            instructions.add(operator.getInstruction(), this);
+            instructions.add(operator.getInstruction(), this, debugRegion);
             
         } else if ( type.equals("unary") ) {
             
             instructions.add(arg1.generateInstructions(environment));
-            instructions.add(operator.getInstruction(), this);
+            instructions.add(operator.getInstruction(), this, debugRegion);
             
         } else if ( type.equals("literal") ) {
             
-            instructions.add(28, this);                 // PUSHINT instruction
-            instructions.add(literalValue, this);       // Operand: The value to push
+            instructions.add(28, this, debugRegion);                 // PUSHINT instruction
+            instructions.add(literalValue, this, debugRegion);       // Operand: The value to push
             
         } else if ( type.equals("reference") ) {
             
-            instructions.add(29, this);                 // PUSHVAR
-            instructions.add(localIndex, this);         // Operand: The variable's offset from the stack's frame pointer in local scope
+            instructions.add(29, this, debugRegion);                 // PUSHVAR
+            instructions.add(localIndex, this, debugRegion);         // Operand: The variable's offset from the stack's frame pointer in local scope
             
         } else if ( type.equals("alloc") ) {
             
-            instructions.add(arg1.generateInstructions(environment));               // Start by finding the actual size to allocate
-            instructions.add(31, this);                                             // ALLOCATE
+            instructions.add(arg1.generateInstructions(environment));       // Start by finding the actual size to allocate
+            instructions.add(31, this, debugRegion);                        // ALLOCATE
             
         } else if ( type.equals("heapAccess") ) {
             
-            instructions.add(arg1.generateInstructions(environment));               // Start by finding the address to fetch from
-            instructions.add(36, this);                                             // HEAPFETCH
+            instructions.add(arg1.generateInstructions(environment));       // Start by finding the address to fetch from
+            instructions.add(36, this, debugRegion);                        // HEAPFETCH
             
         } else if ( type.equals("stringLiteral") ) {
             
@@ -169,8 +201,8 @@ public class Expression implements Statement {
             int length_including_terminator = stringLiteral.length() + 1;
             
             // Lager en allocation siden string literals plasseres på heap
-            Expression size_of_alloc = new Expression(length_including_terminator);
-            Expression alloc = new Expression(size_of_alloc, "alloc");
+            Expression size_of_alloc = new Expression(length_including_terminator, debugRegion);
+            Expression alloc = new Expression(size_of_alloc, "alloc", token);
             
             // Legger til instruksjonene for allokering av området. Nå vil pointer til
             // heap-området hvor stringen skal ligge, være på topp av stack.
@@ -183,11 +215,11 @@ public class Expression implements Statement {
                 
                 char c = stringLiteral.charAt(index);
                 
-                instructions.add(28, this);     // (28)     PUSHINT
-                instructions.add(c, this);      // Operand  Verdi av char som skal skrives
+                instructions.add(28, this, debugRegion);     // (28)     PUSHINT
+                instructions.add(c, this, debugRegion);      // Operand  Verdi av char som skal skrives
                 
-                instructions.add(39, this);     // (39)     HEAPOFFSET (skriv til heap på offset)
-                instructions.add(index, this);  // Operand  Offset fra heap base
+                instructions.add(39, this, debugRegion);     // (39)     HEAPOFFSET (skriv til heap på offset)
+                instructions.add(index, this, debugRegion);  // Operand  Offset fra heap base
                 
             }
             
@@ -259,6 +291,11 @@ public class Expression implements Statement {
             
         }
         
+    }
+    
+    @Override
+    public int getLine() {
+        return debugRegion.start_line;
     }
     
 }

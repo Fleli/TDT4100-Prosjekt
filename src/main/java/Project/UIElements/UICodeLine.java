@@ -9,6 +9,7 @@ import javafx.scene.control.Label;
 import javafx.scene.input.KeyCode;
 import javafx.scene.input.KeyEvent;
 import javafx.scene.paint.Color;
+import javafx.scene.shape.Rectangle;
 import javafx.scene.text.Font;
 
 public class UICodeLine extends UITextField {
@@ -28,10 +29,13 @@ public class UICodeLine extends UITextField {
     private Label lineNumberLabel;
     
     private UICodeErrorNode errorNode;
+    private Rectangle regionMarker;
     
     private double fontSize;
     
     private int lineNumber;
+    
+    private Rectangle highlight;
     
     // Red, green, blue when the line is inactive
     private int r, g, b;
@@ -81,6 +85,14 @@ public class UICodeLine extends UITextField {
         refreshUI();
         setCorrectFill();
         
+    }
+    
+    public void setRegionMarker(Rectangle regionMarker) {
+        this.regionMarker = regionMarker;
+    }
+    
+    public Rectangle getRegionMarker() {
+        return regionMarker;
     }
     
     public int getIndentation() {
@@ -459,6 +471,37 @@ public class UICodeLine extends UITextField {
     
     public void setNetLeftBraces(int netLeftBraces) {
         this.netLeftBraces = netLeftBraces;
+    }
+    
+    public void syntaxHighlightAll() {
+        
+        ide.refreshSyntaxHighlighting(this);
+        
+        if (line_below != null) {
+            line_below.syntaxHighlightAll();
+        }
+        
+    }
+    
+    public void removeHighlight() {
+        
+        if (highlight != null) {
+            getChildren().remove(highlight);
+            highlight = null;
+        }
+        
+    }
+    
+    public void highlight(int start, int end, Color color) {
+        
+        double width = (end - start + 1) * fontSize * 0.6;
+        double height = fontSize;
+        
+        highlight = new Rectangle(width, height);
+        highlight.setTranslateX( getMainLabelTranslateX() + start * fontSize * 0.6);
+        highlight.setFill(color);
+        getChildren().add(highlight);
+        
     }
     
 }

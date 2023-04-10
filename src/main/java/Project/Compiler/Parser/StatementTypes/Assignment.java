@@ -1,5 +1,6 @@
 package Project.Compiler.Parser.StatementTypes;
 
+import Project.Compiler.InstructionGeneration.DebugRegion;
 import Project.Compiler.InstructionGeneration.InstructionList;
 import Project.Compiler.Lexer.Token;
 import Project.Compiler.NameBinding.Environment;
@@ -29,6 +30,8 @@ public class Assignment implements Statement {
     
     private boolean partOfDeclaration;
     
+    private DebugRegion debugRegion;
+    
     /**
      * Creates a new {@code Assignment} object with the specified name ({@code String lhs})
      * and new value ({@code Expression rhs}) to assign to the specified name. Note that
@@ -40,11 +43,30 @@ public class Assignment implements Statement {
      * @param rhs An {@code Expression} object representing the value to assign to the
      * specified variable.
      */
-    public Assignment(String lhs, Expression rhs, Token lhsToken, boolean partOfDeclaration) {
+    public Assignment(String lhs, Expression rhs, Token lhsToken, Token semicolon) {
+        
         this.lhs = lhs;
         this.rhs = rhs;
         this.lhsToken = lhsToken;
-        this.partOfDeclaration = partOfDeclaration;
+        
+        partOfDeclaration = false;
+        
+        DebugRegion region_lhs = new DebugRegion(lhsToken);
+        DebugRegion region_end = new DebugRegion(semicolon);
+        debugRegion = new DebugRegion(region_lhs, region_end);
+        
+    }
+    
+    public Assignment(String lhs, Expression rhs, Token lhsToken, DebugRegion debugRegion) {
+        
+        this.lhs = lhs;
+        this.rhs = rhs;
+        this.lhsToken = lhsToken;
+        
+        partOfDeclaration = true;
+        
+        this.debugRegion = debugRegion;
+        
     }
     
     
@@ -66,8 +88,8 @@ public class Assignment implements Statement {
         
         // Resultat ligger nå øverst på stack, så vi popper og skriver til framePointer + localIndex
         
-        instructions.add(30, this);                     // Pop from stack (result of expression)
-        instructions.add(localIndexOfLhs, this);        // Write to local index, the offset from local frame pointer
+        instructions.add(30, this, debugRegion);                     // Pop from stack (result of expression)
+        instructions.add(localIndexOfLhs, this, debugRegion);        // Write to local index, the offset from local frame pointer
         
         return instructions;
         
@@ -81,6 +103,11 @@ public class Assignment implements Statement {
     @Override
     public String toString() {
         return "assign " + description();
+    }
+    
+    @Override
+    public int getLine() {
+        return debugRegion.start_line;
     }
     
 }

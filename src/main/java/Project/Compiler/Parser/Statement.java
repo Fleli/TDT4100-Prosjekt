@@ -11,4 +11,6 @@ public interface Statement {
     
     public String description();
     
+    public int getLine();
+    
 }

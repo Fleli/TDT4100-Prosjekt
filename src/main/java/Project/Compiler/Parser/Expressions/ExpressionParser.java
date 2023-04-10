@@ -54,37 +54,44 @@ public class ExpressionParser {
     public Expression parse(int level) {
         
         if ( parser.inputIsExhausted() ) {
-            parser.submitErrorOnCurrentLine("Expected value but found end of file.");
+            parser.submitErrorOnCurrentLine("Expected value but found end of file");
             return null;
         }
         
         if ( level > max ) {
             
             Token token = parser.token();
-            Expression node = null;
             
             if ( token.typeIs("(") ) {
-                node = parseSubExpression();
+                return parseSubExpression();
             } else if ( token.typeIs("identifier") ) {
-                node = parseSymbolReference();
+                return parseSymbolReference();
             } else if ( token.typeIs("intLiteral") ) {
-                node = parseIntLiteral();
+                return parseIntLiteral();
             } else if ( token.typeIs("keyword")  &&  token.contentIs("alloc") ) {
-                node = parseAlloc();
+                return parseAlloc();
             } else if ( token.typeIs("keyword")  &&  token.contentIs("heap") ) {
-                node = parseHeapAccess();
+                return parseHeapAccess();
             } else if ( token.typeIs("stringLiteral") ) {
-                node = parseStringLiteral();
+                return parseStringLiteral();
             } else {
                 parser.submitErrorOnToken("expression");
-                incrementIndex();
+                return null;
             }
-            
-            return node;
             
         } else {
             
             Expression arg1 = parse(level + 1);
+            
+            if (arg1 == null) {
+                return null;
+            }
+            
+            if (parser.inputIsExhausted()) {
+                return arg1;
+            }
+            
+            Token operatorToken = parser.token();
             
             Operator operator = find_operator(level);
             
@@ -96,16 +103,21 @@ public class ExpressionParser {
                     
                     Expression arg2 = parse(level + 1);
                     
+                    if (arg2 == null) {
+                        return null;
+                    }
+                    
                     arg1 = new Expression(arg1, arg2, operator);
                     
                 } else if ( position.equals("postfix") ) {
                     
-                    arg1 = new Expression(arg1, operator);
+                    arg1 = new Expression(arg1, operator, operatorToken);
                     
                 } else {
                     
                     // TODO: Verifiser unreachable og fjern denne.
-                    throw new IllegalStateException("Fatal error, reached unreachable.");
+                    System.out.println("Fatal error, reached unreachable.");
+                    System.exit(1);
                     
                 }
                 
@@ -116,8 +128,6 @@ public class ExpressionParser {
             return arg1;
             
         }
-        
-        
         
     }
     
@@ -180,25 +190,40 @@ public class ExpressionParser {
     
     private Expression parseIntLiteral() {
         
-        String content = parser.token().content();
+        Token token = parser.token();
+        String content = token.content();
         
         parser.incrementIndex();
         
         if ( content.equals("true") ) {
-            return new Expression(1);
+            return new Expression(1, token);
         } else if ( content.equals("false") ) {
-            return new Expression(0);
+            return new Expression(0, token);
         } else {
             // TODO: Sjekk at exceptions her faktisk er unreachable, 
             // TODO: eller wrap i try-catch
-            return new Expression ( Integer.parseInt(content) );
+            
+            Expression expression = null;
+            
+            try {
+                expression = new Expression(Integer.parseInt(content), token);
+            } catch (NumberFormatException exception) {
+                parser.submitErrorOnToken_withFullSpecifiedMessage(
+                    "The number " + content + " does not fit in the 32-bit virtual machine."
+                );
+                return null;
+            }
+            
+            return expression;
+            
         }
         
     }
     
     private Expression parseAlloc() {
         
-        // Current token must be 'alloc'
+        // Current token must be 'alloc', so we save it and then skip past
+        Token allocToken = parser.token();
         incrementIndex();
         
         // Assert that next is '('
@@ -218,13 +243,14 @@ public class ExpressionParser {
         
         incrementIndex();
         
-        return new Expression ( allocatedWords , "alloc" );
+        return new Expression ( allocatedWords , "alloc" , allocToken );
         
     }
     
     private Expression parseHeapAccess() {
         
-        // Current token must be 'heap'
+        // Current token must be 'heap', so we save it and skip past
+        Token heapToken = parser.token();
         incrementIndex();
         
         // Assert that next is '('
@@ -250,7 +276,7 @@ public class ExpressionParser {
         // Since the current token is ')', we skip past it
         incrementIndex();
         
-        return new Expression(address, "heapAccess");
+        return new Expression(address, "heapAccess", heapToken);
         
     }
     

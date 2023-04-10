@@ -159,8 +159,6 @@ public class FileInterface {
         
         writer.close();
         
-        System.out.println(file.getAbsolutePath());
-        
     }
     
     public static void delete(String fileName, String extension) throws IOException {

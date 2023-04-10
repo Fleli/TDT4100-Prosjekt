@@ -12,17 +12,17 @@ public class InstructionList implements Iterable<Instruction> {
     private List<Instruction> instructions = new ArrayList<Instruction>();
     
     
-    public void add ( int opcode_or_operand , Statement associatedStatement ) {
+    public void add(int opcode_or_operand, Statement associatedStatement, DebugRegion debugRegion) {
         
-        Instruction instruction = new Instruction(opcode_or_operand, associatedStatement);
+        Instruction instruction = new Instruction(opcode_or_operand, associatedStatement, debugRegion);
         instructions.add(instruction);
         
     }
     
-    public void add ( List<Integer> exeList , Statement associatedStatement ) {
+    public void add (List<Integer> exeList, Statement associatedStatement, DebugRegion debugRegion) {
         
         for ( Integer integer : exeList ) {
-            add(integer, associatedStatement);
+            add(integer, associatedStatement, debugRegion);
         }
         
     }

@@ -1,18 +1,20 @@
 package Project.Compiler.Parser.StatementTypes;
 
+import Project.Compiler.InstructionGeneration.DebugRegion;
 import Project.Compiler.InstructionGeneration.InstructionList;
+import Project.Compiler.Lexer.Token;
 import Project.Compiler.NameBinding.Environment;
 import Project.Compiler.Parser.Statement;
 import Project.Compiler.Parser.Expressions.Expression;
 
 public class HeapAssignment implements Statement {
     
-    
     private Expression address;
     private Expression value;
     
+    private DebugRegion debugRegion;
     
-    public HeapAssignment ( Expression address , Expression value ) {
+    public HeapAssignment(Expression address, Expression value, Token start, Token end) {
         
         if ( address == null  ||  value == null ) {
             throw new IllegalArgumentException("Both arguments of heap assignment must be non-null");
@@ -21,15 +23,14 @@ public class HeapAssignment implements Statement {
         this.address = address;
         this.value = value;
         
+        debugRegion = new DebugRegion(start, end);
+        
     }
     
-
     @Override
     public void bind_names(Environment environment) {
-        
         address.bind_names(environment);
         value.bind_names(environment);
-        
     }
 
     @Override
@@ -45,7 +46,7 @@ public class HeapAssignment implements Statement {
         
         // Etter at value og address er pushet (i denne rekkefølgen),
         // kan vi poppe dem og utføre HEAPASSIGN (35)
-        instructions.add(35 , this);
+        instructions.add(35 , this, debugRegion);
         
         return instructions;
         
@@ -59,6 +60,11 @@ public class HeapAssignment implements Statement {
     @Override
     public String toString() {
         return "heap " + address.description() + " = " + value.description();
+    }
+    
+    @Override
+    public int getLine() {
+        return debugRegion.start_line;
     }
     
 }

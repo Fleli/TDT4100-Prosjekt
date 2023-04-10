@@ -52,6 +52,11 @@ public class Compiler {
             return;
         }
         
+        if (hadCompilationIssues()) {
+            // TODO: Notify caller
+            return;
+        }
+        
         // Sett opp liste for executable
         InstructionList executable = new InstructionList();
         generateExecutable(program, executable);
@@ -142,7 +147,7 @@ public class Compiler {
             executable.add(newInstructions);
         }
         
-        executable.add(0, null); // End program;
+        executable.add(0, null, null); // End program;
         
     }
     
@@ -150,6 +155,22 @@ public class Compiler {
         return 
             keyword.equals("int")
             ||  keyword.equals("string");
+    }
+    
+    private boolean hadCompilationIssues() {
+        
+        if (errors == null) {
+            throw new IllegalStateException("Cannot request compilation issues with errors == null");
+        }
+        
+        for ( Error error : errors ) {
+            if (error.getSeverity().equals("issue")) {
+                return true;
+            }
+        }
+        
+        return false;
+        
     }
     
 }

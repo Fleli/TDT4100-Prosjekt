@@ -1,6 +1,7 @@
 package Project.VirtualMachine.Heap;
 
 import java.util.Arrays;
+import java.util.List;
 
 import Project.VirtualMachine.VMException;
 
@@ -25,7 +26,7 @@ public class VMHeap {
     public int getData ( int location ) throws VMException {
         
         if ( location < 0  ||  location >= size ) {
-            throw new VMException("Segmentation fault on heap. Location " + location + " is outside memory bounds.", "heap");
+            throw new VMException("Segmentation fault on heap read. Location " + location + " is outside of memory bounds.", "heap");
         }
         
         return data[location];
@@ -35,23 +36,25 @@ public class VMHeap {
     public void setData ( int location , int word ) throws VMException {
         
         if ( location < 0  ||  location >= size ) {
-            throw new VMException("Segmentation fault on heap. Location " + location + " is outside memory bounds.", "heap");
+            throw new VMException("Segmentation fault on heap write. Location " + location + " is outside of memory bounds.", "heap");
         }
         
         data[location] = word;
         
     }
     
-    public int alloc ( int size ) throws VMException {
+    public int alloc(int size, int allocLine) throws VMException {
         
-        return allocator.allocate ( size );
+        return allocator.allocate(size, allocLine);
         
     }
     
+    public List<VMHeapArea> getUsed() {
+        return allocator.getUsed();
+    }
+    
     public void dealloc ( int pointer ) throws VMException {
-        
         allocator.deallocate ( pointer );
-        
     }
     
     public int getSize() {

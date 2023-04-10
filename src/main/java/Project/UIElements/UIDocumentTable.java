@@ -78,8 +78,6 @@ public class UIDocumentTable extends UINode {
         
         confirmSelection();
         
-        System.out.println("Selected file: " + selected);
-        
     }
     
     @Override
@@ -88,8 +86,6 @@ public class UIDocumentTable extends UINode {
         super.afterMouseDown();
         
         confirmSelection();
-        
-        System.out.println("Selected file: " + selected);
         
     }
     

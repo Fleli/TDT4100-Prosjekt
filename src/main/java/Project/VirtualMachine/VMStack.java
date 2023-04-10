@@ -58,6 +58,10 @@ public class VMStack {
         
     }
     
+    public int[] getStack() {
+        return data;
+    }
+    
     public int peekAtFramePointerOffset ( int offset ) throws VMException {
         
         if ( framePointer + offset < 0  ||  framePointer + offset >= stackPointer ) {

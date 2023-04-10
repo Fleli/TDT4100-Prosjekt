@@ -1,26 +1,24 @@
 package Project.Views.ViewIDE;
 
 import Project.Program;
-import Project.Compiler.Compiler.Compiler;
 import Project.Documents.Document;
 import Project.FileInterface.FileInterface;
 import Project.UIElements.UICodeLine;
 import Project.UIElements.UINode;
 import Project.UIElements.UISize;
 import Project.Views.UIView;
-import Project.Views.ViewIDE.LanguageDelegates.Delegate_f;
+import Project.Views.ViewIDE.IDEs.IDE;
 import Project.Views.ViewIDE.LanguageDelegates.LanguageDelegate;
-import Project.VirtualMachine.Runtime;
-import Project.VirtualMachine.VMException;
+import Project.Views.ViewIDE.LanguageDelegates.Delegate_f.Delegate_f;
 import javafx.scene.input.Clipboard;
 import javafx.scene.input.KeyCode;
 import javafx.scene.input.KeyEvent;
 import javafx.scene.paint.Color;
 import javafx.scene.shape.Rectangle;
 
-public class ViewIDE extends UIView {
+public class ViewIDE extends UIView implements IDE {
     
-    public static final double topLineHeight = 100;
+    public static final double upperBandHeight = 100;
     public static final double codeAreaHeight = 700;
     
     private static double preferred_fontSize = 15;
@@ -30,8 +28,6 @@ public class ViewIDE extends UIView {
     
     private static double scrollSensitity = 0.5;
     
-    private Compiler compiler;
-    
     private Document document;
     
     private UICodeLine topLine;
@@ -39,11 +35,10 @@ public class ViewIDE extends UIView {
     
     private int numberOfLines = 1;
     
-    private IDETopBand upperBand;
     private Rectangle lowerBand;
     private Rectangle codeBackground;
     
-    private ViewIDEConsole console;
+    private UINode debugAreaView;
     
     private boolean notLoading = true;
     
@@ -60,35 +55,30 @@ public class ViewIDE extends UIView {
         
         this.document = document;
         
-        delegate = new Delegate_f();
+        delegate = new Delegate_f(this);
+        debugAreaView = delegate.getDebugArea();
+        debugAreaView.setTranslateX(codeLineWidth);
+        debugAreaView.setTranslateY(upperBandHeight);
+        addChild(debugAreaView);
         
         codeBackground = new Rectangle(codeLineWidth, codeAreaHeight);
         codeBackground.setFill(Color.rgb(25, 30, 50, 1)); // TODO: Link this color with codeline colors
-        codeBackground.setTranslateY(topLineHeight);
+        codeBackground.setTranslateY(upperBandHeight);
         getChildren().add(codeBackground);
         
         topLine = new UICodeLine(preferred_fontSize, this, codeLineWidth, 0);
         topLine.setLineNumber(1);
         topLine.setTranslateX(codeLineTranslateX);
-        topLine.setTranslateY(topLineHeight);
+        topLine.setTranslateY(upperBandHeight);
         setActiveLine(topLine);
         addChild(topLine);
         
-        double consoleWidth = Program.viewSize.width - codeLineWidth;
-        console = new ViewIDEConsole(consoleWidth, codeAreaHeight);
-        console.setTranslateX(codeLineWidth);
-        console.setTranslateY(topLineHeight);
-        addChild(console);
-        
-        compiler = new Compiler();
-        
         Color bandColor = Color.rgb(130, 150, 170);
         
-        upperBand = new IDETopBand(this, bandColor, topLineHeight);
-        addChild(upperBand);
+        addChild ( delegate.getIDEUpperBand(bandColor, upperBandHeight, topLine) );
         
-        lowerBand = new Rectangle(Program.viewSize.width, Program.viewSize.height - topLineHeight - codeAreaHeight);
-        lowerBand.setTranslateY(topLineHeight + codeAreaHeight);
+        lowerBand = new Rectangle(Program.viewSize.width, Program.viewSize.height - upperBandHeight - codeAreaHeight);
+        lowerBand.setTranslateY(upperBandHeight + codeAreaHeight);
         lowerBand.setFill(bandColor);
         getChildren().add(lowerBand);
         
@@ -121,7 +111,7 @@ public class ViewIDE extends UIView {
     public void didScroll(double x, double y, double dx, double dy) {
         
         boolean isInsideX_codeArea = x > codeLineTranslateX  &&  x < codeLineTranslateX + codeLineWidth;
-        boolean isInsideY_codeArea = y > topLineHeight  &&  y < topLineHeight + codeAreaHeight;
+        boolean isInsideY_codeArea = y > upperBandHeight  &&  y < upperBandHeight + codeAreaHeight;
         
         boolean isInsideX_console = x > codeLineTranslateX + codeLineWidth;
         
@@ -137,7 +127,7 @@ public class ViewIDE extends UIView {
         } else if ( isInsideX_console  &&  isInsideY_codeArea ) {
             
             UINode.ignoreDidScroll = true;
-            console.delegatedScroll(dx, dy);
+            delegate.scrolledInDebugArea(dx, dy);
             
         } else {
             
@@ -193,34 +183,7 @@ public class ViewIDE extends UIView {
         
     }
     
-    public void compileAndRun() {
-        
-        console.clear();
-        
-        String sourceCode = topLine.recursivelyFetchSourceCode();
-        
-        compiler = new Compiler();
-        compiler.compile(sourceCode, true);
-        
-        Runtime runtime = new Runtime( compiler.getExecutable() , 512, 512 , console);
-        
-        try {
-            
-            Runtime.printDebugInfo = false;
-            runtime.run();
-            
-        } catch (VMException exception) {
-            
-            System.out.println("Runtime exception: " + exception.getLocalizedMessage());
-            
-        }
-        
-        runtime.printStack();
-        runtime.printHeap();
-    
-    }
-    
-    public void increaseNumberOfLines(int increase) {
+    public void increaseNumberOfLines(int increase) { 
         numberOfLines += increase;
     }
     
@@ -228,12 +191,17 @@ public class ViewIDE extends UIView {
         numberOfLines -= decrease;
     }
     
+    @Override
+    public String getContent() {
+        return topLine.recursivelyFetchSourceCode();
+    }
+    
     public void placeCodeLinesCorrectly() {
         
         double newTY = topLine.getTranslateY();
         
-        newTY = Math.min(newTY, topLineHeight);
-        newTY = Math.max(newTY, (1 - numberOfLines) * ( preferred_fontSize + UICodeLine.codeLineSpacing) + topLineHeight);
+        newTY = Math.min(newTY, upperBandHeight);
+        newTY = Math.max(newTY, (1 - numberOfLines) * ( preferred_fontSize + UICodeLine.codeLineSpacing) + upperBandHeight);
         
         topLine.setTranslateY(newTY);
         
@@ -277,6 +245,15 @@ public class ViewIDE extends UIView {
             System.out.println(e.getLocalizedMessage());
             
         }
+        
+    }
+    
+    public UISize getDebugAreaViewSize() {
+        
+        double width = Program.viewSize.width - codeLineWidth;
+        double height = codeAreaHeight;
+        
+        return new UISize(width, height);
         
     }
     

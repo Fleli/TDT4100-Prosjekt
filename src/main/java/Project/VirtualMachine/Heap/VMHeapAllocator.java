@@ -39,7 +39,7 @@ public class VMHeapAllocator {
         
     }
     
-    public int allocate ( int size ) throws VMException {
+    public int allocate(int size, int allocLine) throws VMException {
         
         int passes = 0;
         
@@ -60,7 +60,7 @@ public class VMHeapAllocator {
         
         if ( passes < 2 ) {     // Success
             
-            VMHeapArea newlyAllocated = new VMHeapArea(heapPointer, size);
+            VMHeapArea newlyAllocated = new VMHeapArea(heapPointer, size, allocLine);
             used.add(newlyAllocated);
             
             int pointer = heapPointer;
@@ -71,24 +71,25 @@ public class VMHeapAllocator {
             
         } else {                // No success, not enough space
             
-            System.out.println("Not enough space for allocation of size " + size + " words in heap allocator"); 
-            System.out.println("Heap info: ");
-            System.out.println(this);
-            throw new VMException("Not enough space for allocation of size " + size + " words.", "heap allocator");
+            throw new VMException("Not enough heap space for allocation of size " + size + " words.", "heap allocator");
             
         }
         
     }
     
-    public void deallocate ( int pointer ) throws VMException {
+    public void deallocate(int pointer) throws VMException {
         
         for ( VMHeapArea area : used ) if ( area.getAddress() == pointer ) {
             used.remove(area);
             return;
         }
         
-        throw new VMException("Cannot free unused memory at location " + pointer + ".", "heap allocator");
+        throw new VMException("Cannot deallocate unused memory at location " + pointer + ".", "heap allocator");
         
+    }
+    
+    public List<VMHeapArea> getUsed() {
+        return used;
     }
     
     public void printUsed() {
