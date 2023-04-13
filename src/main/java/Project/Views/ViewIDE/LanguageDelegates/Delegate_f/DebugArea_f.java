@@ -10,7 +10,6 @@ import Project.Views.ViewIDE.DebugArea.DebugAreaView;
 import Project.Views.ViewIDE.DebugArea.HeapView;
 import Project.Views.ViewIDE.DebugArea.RuntimeView;
 import Project.Views.ViewIDE.DebugArea.StackView;
-import Project.Views.ViewIDE.LanguageDelegates.Delegate_f.VMDB.VMDebugger;
 import Project.VirtualMachine.VMException;
 import Project.VirtualMachine.Heap.VMHeapArea;
 import javafx.geometry.Point2D;
@@ -102,8 +101,9 @@ public class DebugArea_f extends UINode {
     
     public void setDebugger(VMDebugger debugger) {
         variables.setDebugger(debugger);
-        //allocations.setDebugger(debugger); Ordne denne funksjonen i alloc-klassen også
         runtime.setDebugger(debugger);
+        allocations.setDebugger(debugger);
+        console.setDebugger(debugger);
     }
     
     public void delegatedScroll(double dx, double dy) {
@@ -151,9 +151,9 @@ public class DebugArea_f extends UINode {
         runtime.notifyException(exception);
     }
     
-    public void notifyLeaks(List<VMHeapArea> leaks) {
+    public void finishedRun(List<VMHeapArea> leaks) {
         
-        if (leaks.size() > 0) {
+        if (leaks != null  &&  leaks.size() > 0) {
             
             selectView(3);
             
@@ -174,7 +174,18 @@ public class DebugArea_f extends UINode {
                 
             }
             
+        } else {
+            
+            runtime.clear();
+            runtime.print("Successfully finished execution.", Color.WHITE, "-fx-font-weight: bold;");
+            
         }
+        
+        variables.clear();
+        variables.print("To see variables live,\nrun in debug mode.", Color.WHITE, "-fx-font-weight: bold;");
+        
+        allocations.clear();
+        allocations.print("To see allocations live,\nrun in debug mode", Color.WHITE, "-fx-font-weight: bold;");
         
     }
     

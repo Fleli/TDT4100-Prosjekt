@@ -6,6 +6,7 @@ import Project.Compiler.InstructionGeneration.DebugRegion;
 import Project.Compiler.InstructionGeneration.InstructionList;
 import Project.Compiler.Lexer.Token;
 import Project.Compiler.NameBinding.Environment;
+import Project.Compiler.Optimizer.Optimizer;
 import Project.Compiler.Parser.Statement;
 import Project.Compiler.Parser.Expressions.Expression;
 
@@ -49,7 +50,17 @@ public class While implements Statement {
         environment.popScope();
         
     }
-
+    
+    public void constantFold(Optimizer optimizer) {
+        
+        condition.constantFold(optimizer);
+        
+        for (Statement statement : body) {
+            statement.constantFold(optimizer);
+        }
+        
+    }
+    
     @Override
     public InstructionList generateInstructions(Environment environment) {
         

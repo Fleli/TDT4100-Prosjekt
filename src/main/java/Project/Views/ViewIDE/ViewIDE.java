@@ -7,6 +7,7 @@ import Project.UIElements.UICodeLine;
 import Project.UIElements.UINode;
 import Project.UIElements.UISize;
 import Project.Views.UIView;
+import Project.Views.ViewMenu;
 import Project.Views.ViewIDE.IDEs.IDE;
 import Project.Views.ViewIDE.LanguageDelegates.LanguageDelegate;
 import Project.Views.ViewIDE.LanguageDelegates.Delegate_f.Delegate_f;
@@ -20,6 +21,7 @@ public class ViewIDE extends UIView implements IDE {
     
     public static final double upperBandHeight = 100;
     public static final double codeAreaHeight = 700;
+    public static final Color bandColor = Color.rgb(130, 150, 170);
     
     private static double preferred_fontSize = 15;
     
@@ -35,7 +37,6 @@ public class ViewIDE extends UIView implements IDE {
     
     private int numberOfLines = 1;
     
-    private Rectangle lowerBand;
     private Rectangle codeBackground;
     
     private UINode debugAreaView;
@@ -47,15 +48,17 @@ public class ViewIDE extends UIView implements IDE {
     // TODO: Se mer på denne
     private boolean autosave = true;
     
-    public ViewIDE(UISize size, Document document) {
+    public ViewIDE(UISize size, Document document, Program mainProgram) {
         
-        // TODO: Rens denne konstruktøren, fordi den er ikke pen å lese gjennom
+        // TODO: Rens denne konstruktøren – den er ikke pen å lese gjennom
         
         super(size);
+        super.setMainProgram(mainProgram);
         
         this.document = document;
         
         delegate = new Delegate_f(this);
+        
         debugAreaView = delegate.getDebugArea();
         debugAreaView.setTranslateX(codeLineWidth);
         debugAreaView.setTranslateY(upperBandHeight);
@@ -65,7 +68,7 @@ public class ViewIDE extends UIView implements IDE {
         codeBackground.setFill(Color.rgb(25, 30, 50, 1)); // TODO: Link this color with codeline colors
         codeBackground.setTranslateY(upperBandHeight);
         getChildren().add(codeBackground);
-        
+         
         topLine = new UICodeLine(preferred_fontSize, this, codeLineWidth, 0);
         topLine.setLineNumber(1);
         topLine.setTranslateX(codeLineTranslateX);
@@ -73,14 +76,12 @@ public class ViewIDE extends UIView implements IDE {
         setActiveLine(topLine);
         addChild(topLine);
         
-        Color bandColor = Color.rgb(130, 150, 170);
-        
         addChild ( delegate.getIDEUpperBand(bandColor, upperBandHeight, topLine) );
+        addChild( delegate.getIDELowerBand(bandColor, topLine) );
         
-        lowerBand = new Rectangle(Program.viewSize.width, Program.viewSize.height - upperBandHeight - codeAreaHeight);
-        lowerBand.setTranslateY(upperBandHeight + codeAreaHeight);
-        lowerBand.setFill(bandColor);
-        getChildren().add(lowerBand);
+        delegate.setBackToMenuAction( () -> {
+            mainProgram().setView( new ViewMenu(size, mainProgram()) );
+        } );
         
         notLoading = false;
         loadDocument();
@@ -164,6 +165,10 @@ public class ViewIDE extends UIView implements IDE {
             }
             
             UINode.ignoreKeyDown = true;
+            
+        } else if ( keyEvent.isMetaDown()  &&  keyEvent.getCode() == KeyCode.ENTER ) {
+            
+            delegate.ctrlRight(topLine);
             
         } else {
             

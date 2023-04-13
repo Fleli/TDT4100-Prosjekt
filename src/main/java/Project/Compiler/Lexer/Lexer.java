@@ -13,7 +13,7 @@ public class Lexer {
     ) );
     
     private final static String initId = "_abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ";
-    private final static String initOp = "+-*/%&|<>!";
+    private final static String initOp = "+-*/%&|<>!~";
     
     // Note that '=' can both lead to '=' (control) and '==' (operator), but starts out as '=' (control)
     // and is later changed *if* it is followed by another '='
@@ -178,9 +178,7 @@ public class Lexer {
         
         char b = text.charAt(index);
         
-        boolean is_notEqual     =   a == '!'    &&      b == '=';
-        
-        if ( is_notEqual ) {
+        if (a == '!' &&  b == '=') {
             appendAndIncrement(token);
         }
         

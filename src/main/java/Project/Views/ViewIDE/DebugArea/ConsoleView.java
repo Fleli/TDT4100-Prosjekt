@@ -9,6 +9,9 @@ public class ConsoleView extends DebugAreaView {
         //TODO Auto-generated constructor stub
     }
     
-    
+    @Override
+    public void refresh() {
+        
+    }
     
 }

@@ -3,12 +3,14 @@ package Project.Views.ViewIDE.LanguageDelegates.Delegate_f;
 import java.util.List;
 
 import Project.Compiler.Compiler.Compiler;
+import Project.Compiler.Compiler.CompilerProfiler;
 import Project.Compiler.Compiler.Error;
 import Project.Compiler.InstructionGeneration.DebugRegion;
 import Project.Compiler.Lexer.Token;
 import Project.VirtualMachine.Runtime;
 import Project.VirtualMachine.VMException;
 import Project.VirtualMachine.Heap.VMHeapArea;
+import Project.UIElements.UIAction;
 import Project.UIElements.UICodeLine;
 import Project.UIElements.UILabel;
 import Project.UIElements.UINode;
@@ -16,7 +18,6 @@ import Project.UIElements.UISize;
 import Project.Views.ViewIDE.DebugArea.ConsoleView;
 import Project.Views.ViewIDE.IDEs.IDE;
 import Project.Views.ViewIDE.LanguageDelegates.LanguageDelegate;
-import Project.Views.ViewIDE.LanguageDelegates.Delegate_f.VMDB.VMDebugger;
 import javafx.scene.paint.Color;
 import javafx.scene.shape.SVGPath;
 
@@ -28,11 +29,12 @@ public class Delegate_f implements LanguageDelegate {
     private IDE ide;
     
     private Runtime debugRuntime;
-    
     private DebugRegion debugRegion;
     private VMDebugger debugger;
-    
     private DebugArea_f debugArea;
+    
+    private UpperBand_f upperBand;
+    private LowerBand_f lowerBand;
     
     public Delegate_f(IDE ide) {
         
@@ -49,25 +51,34 @@ public class Delegate_f implements LanguageDelegate {
         return debugArea;
     }
     
-    @Override
-    public void run(String sourceCode, int stack_size, int heap_size) {
+    public void run(String sourceCode, int stack_size, int heap_size, UICodeLine topLine) {
+        
+        killDebugger(topLine);
         
         clearConsole();
         ConsoleView console = getConsole();
         
         Compiler compiler = new Compiler();
-        compiler.compile(sourceCode, true);
+        compiler.compile(sourceCode, true, 1);
         
-        Runtime runtime = new Runtime( compiler.getExecutable() , stack_size, heap_size , console);
+        CompilerProfiler profiler = compiler.getProfiler();
+        lowerBand.refreshCompileProfiling(profiler);
+        
+        if (compiler.getExecutable() == null) {
+            console.print("Cannot run due to unresolved\ncompilation errors.", Color.PINK, "-fx-font-weight: bold;");
+            return;
+        }
+        
+        Runtime runtime = new Runtime(compiler.getExecutable(), stack_size, heap_size, console);
         Runtime.printDebugInfo = false;
         
         try {
             
             runtime.run();
             
-            List<VMHeapArea> leaks = runtime.getMemoryLeaks();
+            List<VMHeapArea> leaks = runtime.getHeapUsage();
             
-            debugArea.notifyLeaks(leaks);
+            debugArea.finishedRun(leaks);
             
         } catch (VMException exception) {
             
@@ -76,42 +87,49 @@ public class Delegate_f implements LanguageDelegate {
             
         }
         
-        runtime.printStack();
-        runtime.printHeap();
-        
     }
     
     @Override
-    public void run() {
+    public void run(UICodeLine topLine) {
         String sourceCode = ide.getContent();
-        run(sourceCode, default_stack_size, default_heap_size);
+        run(sourceCode, default_stack_size, default_heap_size, topLine);
     }
     
-    public void debug(String sourceCode, int stack_size, int heap_size) {
+    public void initDebugger(String sourceCode, int stack_size, int heap_size, UICodeLine topLine) {
         
-        clearConsole();
+        debugArea.clear();
         ConsoleView console = getConsole();
         
         Compiler compiler = new Compiler();
-        compiler.compile(sourceCode, true);
+        compiler.compile(sourceCode, true, 1);
         
         debugger = new VMDebugger();
         debugArea.setDebugger(debugger);
         debugRuntime = new Runtime(compiler.getExecutable(), stack_size, heap_size, console, debugger);
         // Do something to UI, so that the debugger is visible & usable
         
+        debugger_nextClock(topLine);
+        
     }
     
-    public void debug() {
+    public void killDebugger(UICodeLine topLine) {
+        debugger = null;
+        debugRuntime = null;
+        debugRegion = null;
+        debugArea.setDebugger(null);
+        topLine.syntaxHighlightAll();
+    }
+    
+    public void debug(UICodeLine topLine) {
         String sourceCode = ide.getContent();
-        debug(sourceCode, default_stack_size, default_heap_size);
+        initDebugger(sourceCode, default_stack_size, default_heap_size, topLine);
     }
     
     public void debugger_nextClock(UICodeLine topLine) {
         
         if (debugRuntime == null) {
             // TODO: Gjør noe med UI her
-            throw new IllegalStateException("Debug runtime is null, so next clock cannot be called.");
+            return;
         }
         
         try {
@@ -126,7 +144,7 @@ public class Delegate_f implements LanguageDelegate {
             
         } catch (VMException exception) {
             
-            deleteDebugger(topLine);
+            killDebugger(topLine);
             debugArea.notifyException(exception);
             
         }
@@ -163,11 +181,14 @@ public class Delegate_f implements LanguageDelegate {
             
             boolean isIssue = false;
             boolean isWarning = false;
-                
+            
+            Integer errorLineLength = null;
+            
             for (Error error : line.getErrors()) {
                 
                 int lineNumber = error.getLine();
                 Integer column = error.getColumn();
+                DebugRegion debugRegion = error.getDebugRegion();
                 
                 if (lineNumber == line.getLineNumber()  &&  column != null  &&  column == token.startColumn()) {
                     
@@ -175,6 +196,12 @@ public class Delegate_f implements LanguageDelegate {
                         isIssue = true;
                     } else {
                         isWarning = true;
+                    }
+                    
+                    if (debugRegion != null) {
+                        errorLineLength = debugRegion.end_col - debugRegion.start_col - 1;
+                    } else {
+                        errorLineLength = token.content().length();
                     }
                     
                 }
@@ -202,7 +229,7 @@ public class Delegate_f implements LanguageDelegate {
             
             if (isIssue || isWarning) {
                 
-                double width = content.length() * fontSize * 0.6;
+                double width = errorLineLength * fontSize * 0.6;
                 StringBuilder svgContent = new StringBuilder("M");
                 
                 for ( int x = 0 ; x < width ; x += 2 ) {
@@ -336,13 +363,20 @@ public class Delegate_f implements LanguageDelegate {
     }
     
     public UINode getIDEUpperBand(Color color, double height, UICodeLine topLine) {
-        return new TopBand_f(color, height, this, topLine);
+        upperBand = new UpperBand_f(color, height, this, topLine);
+        return upperBand;
     }
     
-    public UINode getIDELowerBand(Color color, double height) {
-        return null;
+    public UINode getIDELowerBand(Color color, UICodeLine topLine) {
+        lowerBand = new LowerBand_f(this, topLine);
+        return lowerBand;
     }
-
+    
+    @Override
+    public void setBackToMenuAction(UIAction action) {
+        upperBand.setBackToMenuAction(action);
+    }
+    
     @Override
     public void scrolledInDebugArea(double dx, double dy) {
         debugArea.delegatedScroll(dx, dy);
@@ -364,12 +398,8 @@ public class Delegate_f implements LanguageDelegate {
         debugArea.selectView(view);
     }
     
-    public void deleteDebugger(UICodeLine topLine) {
-        debugger = null;
-        debugRuntime = null;
-        debugRegion = null;
-        debugArea.setDebugger(null);
-        topLine.syntaxHighlightAll();
+    public void ctrlRight(UICodeLine topLine) {
+        debugger_nextClock(topLine);
     }
     
 }

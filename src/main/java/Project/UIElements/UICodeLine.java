@@ -85,6 +85,8 @@ public class UICodeLine extends UITextField {
         refreshUI();
         setCorrectFill();
         
+        doNotAllow("\\$");
+        
     }
     
     public void setRegionMarker(Rectangle regionMarker) {

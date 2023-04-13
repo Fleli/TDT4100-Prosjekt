@@ -1,5 +1,6 @@
 package Project.Compiler.Compiler;
 
+import Project.Compiler.InstructionGeneration.DebugRegion;
 import Project.Compiler.Lexer.Token;
 
 public class Error {
@@ -15,6 +16,12 @@ public class Error {
      * Note: If a token is passed in, its line will be used for the {@code line} property of the error.
     */
     private Token token;
+    
+    /**
+     * Instead of a token, a {@code DebugRegion} object might be specified. This allows errors to span over multiple
+     * tokens.
+     */
+    private DebugRegion debugRegion;
     
     /**
      * All errors happen on a specific line.
@@ -42,6 +49,13 @@ public class Error {
         this.severity = severity;
     }
     
+    public Error(String message, DebugRegion debugRegion, String severity) {
+        this.message = message;
+        this.debugRegion = debugRegion;
+        this.line = debugRegion.start_line;
+        this.severity = severity;
+    }
+    
     public int getLine() {
         return line;
     }
@@ -56,12 +70,18 @@ public class Error {
     
     public Integer getColumn() {
         
-        if (token != null) {
+        if (debugRegion != null) {
+            return debugRegion.start_col;
+        } else if (token != null) {
             return token.startColumn();
         } else {
             return null;
         }
         
+    }
+    
+    public DebugRegion getDebugRegion() {
+        return debugRegion;
     }
     
     @Override

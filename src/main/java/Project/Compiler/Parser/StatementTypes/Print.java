@@ -8,6 +8,7 @@ import Project.Compiler.InstructionGeneration.DebugRegion;
 import Project.Compiler.InstructionGeneration.InstructionList;
 import Project.Compiler.Lexer.Token;
 import Project.Compiler.NameBinding.Environment;
+import Project.Compiler.Optimizer.Optimizer;
 import Project.Compiler.Parser.Statement;
 import Project.Compiler.Parser.Expressions.Expression;
 
@@ -46,7 +47,11 @@ public class Print implements Statement {
     public void bind_names(Environment environment) {
         argument.bind_names(environment);
     }
-
+    
+    public void constantFold(Optimizer optimizer) {
+        argument.constantFold(optimizer);
+    }
+    
     @Override
     public InstructionList generateInstructions(Environment environment) {
         

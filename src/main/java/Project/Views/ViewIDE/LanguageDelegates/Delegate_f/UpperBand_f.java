@@ -1,6 +1,7 @@
 package Project.Views.ViewIDE.LanguageDelegates.Delegate_f;
 
 import Project.Program;
+import Project.UIElements.UIAction;
 import Project.UIElements.UIButton;
 import Project.UIElements.UICodeLine;
 import Project.UIElements.UINode;
@@ -11,7 +12,7 @@ import javafx.scene.paint.Color;
 import javafx.scene.shape.Rectangle;
 import javafx.scene.text.Font;
 
-public class TopBand_f extends UINode {
+public class UpperBand_f extends UINode {
     
     private static final double padding = 30;
     private static final double textSpace = 140;
@@ -24,9 +25,13 @@ public class TopBand_f extends UINode {
     
     private UIButton button_debug_clock;
     
+    private UIButton button_back;
+    
     private double height;
     
-    public TopBand_f(Color bandColor, double height, Delegate_f delegate, UICodeLine topLine) {
+    private UISize buttonSize;
+    
+    public UpperBand_f(Color bandColor, double height, Delegate_f delegate, UICodeLine topLine) {
         
         super();
         
@@ -38,7 +43,7 @@ public class TopBand_f extends UINode {
         getChildren().add(upperBand);
         
         Point2D zero = new Point2D(0, 0);
-        UISize buttonSize = new UISize(height - 2 * padding + textSpace, height - 2 * padding);
+        buttonSize = new UISize(height - 2 * padding + textSpace, height - 2 * padding);
         
         button_run = new UIButton(zero, buttonSize, "Kjør");
         button_compile = new UIButton(zero, buttonSize, "Kompiler");
@@ -51,7 +56,7 @@ public class TopBand_f extends UINode {
         button_run.setActionInside( () -> {
             delegate.clearDebugArea();
             delegate.requestDebugAreaView(0);
-            delegate.run();
+            delegate.run(topLine);
         } );
         
         button_compile.setActionInside( () -> {
@@ -59,16 +64,37 @@ public class TopBand_f extends UINode {
         } );
         
         button_debug.setActionInside( () -> {
-            delegate.debug();
-            // Legg til debug-knapper
+            delegate.debug(topLine);
         } );
         
-        button_debug_clock = new UIButton(zero, buttonSize, "Debugclock");
-        init_button(button_debug_clock, 0, "ferdig.png");
+        button_debug_clock = new UIButton(
+            new Point2D(50, buttonSize.height / 2 - buttonSize.height * 0.6 / 2), 
+            new UISize(buttonSize.width * 0.6, buttonSize.height * 0.6), 
+            "Debug Clock"
+        );
+        button_debug_clock.setMainLabelTranslationX(20);
+        button_debug_clock.setMainLabelFont( new Font("Courier New", 14) );
+        button_debug_clock.setMainLabelFontColor(Color.rgb(40, 20, 30));
+        button_debug_clock.setMainLabelStyle("-fx-font-weight: bold;");
+        button_debug_clock.setFill(150, 220, 170);
+        button_debug_clock.setImage( new Image(
+            "file:TDT4100-prosjekt-frederee/src/main/java/Project/Images/Editor/ferdig.png",
+            buttonSize.height * 0.6, buttonSize.height * 0.6, true, true
+        ) );
+        button_debug.addChild(button_debug_clock);
+        button_debug_clock.setTranslateX(buttonSize.width + 20);
+        button_debug_clock.setVisible(true);
         
         button_debug_clock.setActionInside( () -> {
             delegate.debugger_nextClock(topLine);
         } );
+        
+        button_back = new UIButton(
+            new Point2D(height / 2 - buttonSize.height / 2, 50), 
+            buttonSize, 
+            "Tilbake"
+        );
+        init_button(button_back, height, "ferdig.png");
         
     }
     
@@ -87,11 +113,15 @@ public class TopBand_f extends UINode {
         
         button.setImage( new Image(
             "file:TDT4100-prosjekt-frederee/src/main/java/Project/Images/Editor/" + image,
-            height - 2 * padding, height - 2 * padding, true, true
+            buttonSize.width / 2 - 2 * padding, buttonSize.height / 2 - 2 * padding, true, true
         ) );
         
         addChild(button);
         
+    }
+    
+    public void setBackToMenuAction(UIAction action) {
+        button_back.setActionInside(action);
     }
     
 }

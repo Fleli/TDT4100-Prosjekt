@@ -7,6 +7,7 @@ import Project.Compiler.InstructionGeneration.InstructionList;
 import Project.Compiler.Lexer.Lexer;
 import Project.Compiler.Lexer.Token;
 import Project.Compiler.NameBinding.Environment;
+import Project.Compiler.Optimizer.Optimizer;
 import Project.Compiler.Parser.Parser;
 import Project.Compiler.Parser.Statement;
 import Project.VirtualMachine.Runtime;
@@ -15,55 +16,80 @@ public class Compiler {
     
     private Lexer lexer = new Lexer();
     private Parser parser = new Parser();
-    
     private Environment environment = new Environment();
-    
+    private Optimizer optimizer = new Optimizer();
     private InstructionList executable;
     
     private List<Error> errors = new ArrayList<Error>();
     
-    public void compile(String sourceCode, boolean generateExecutable) {
+    private CompilerProfiler profiler;
+    
+    /**
+     * Lex, parse and name-bind the passed-in source code. Optionally generate executable.
+     * If no errors, and executable generation is accepted, will also optimize the code with
+     * the given optimization configuration.
+     * @param sourceCode The source code to compile
+     * @param generateExecutable Boolean value to allow or not allow code optimizations and
+     * executable generation.
+     * @param optimizeConfiguration An {@code int} whose bitpattern describes what optimizations
+     * to perform. See {@code static final} properties of {@code Optimizer} for an overview of
+     * available optimizations.
+     */
+    public void compile(String sourceCode, boolean generateExecutable, int optimizeConfiguration) {
         
         if ( sourceCode == null ) throw new IllegalArgumentException("Source code cannot be null");
+        
+        profiler = new CompilerProfiler();
         
         // Setup token and statement lists
         List<Token> tokens;
         List<Statement> program;
         
-        // Lex the input
+        // Lex the input and notify the profiler
         lexer.setInput(sourceCode);
         lexer.lex();
         tokens = lexer.getTokens();
+        profiler.finishedStage(0);
         
-        // Parse the input
+        // Parse the input and notify the profiler
         parser.setTokens(tokens);
         parser.parse();
         program = parser.getStatements();
+        profiler.finishedStage(1);
         
-        // Bind names
+        // Bind names and notify the profiler
         bindNames(program);
+        profiler.finishedStage(2);
+        
+        // Optimize kode
+        optimizer.setOptimizerConfiguration(optimizeConfiguration);
+        optimizer.setProgram(program);
+        optimizer.optimize();
+        profiler.finishedStage(3);
         
         // Finner errors i source-programmet
         errors.addAll(parser.getErrors());
         errors.addAll(environment.getErrors());
+        errors.addAll(optimizer.getErrors());
         
         // Ferdig dersom executable ikke skal genereres
-        if ( !generateExecutable ) {
+        if (hadCompilationIssues() || !generateExecutable) {
+            // TODO: Consider notifying caller if compilation issues
             return;
         }
         
-        if (hadCompilationIssues()) {
-            // TODO: Notify caller
-            return;
-        }
-        
-        // Sett opp liste for executable
+        // Sett opp liste for executable og si fra til profiler
         InstructionList executable = new InstructionList();
         generateExecutable(program, executable);
+        profiler.finishedStage(4);
         
         // Assign to this object's executable property
         this.executable = executable;
         
+    }
+    
+    public void compile(String sourceCode, boolean generateExecutable) {
+        compile(sourceCode, generateExecutable, 1);
     }
     
     public InstructionList getExecutable() {
@@ -171,6 +197,10 @@ public class Compiler {
         
         return false;
         
+    }
+    
+    public CompilerProfiler getProfiler() {
+        return profiler;
     }
     
 }

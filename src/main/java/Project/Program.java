@@ -78,6 +78,7 @@ public class Program extends Application {
         primaryStage.setFullScreen(true);
         primaryStage.setScene(scene);
         primaryStage.setTitle("Stage");
+        primaryStage.setFullScreenExitHint("");
         primaryStage.show();
         
     }
@@ -92,7 +93,7 @@ public class Program extends Application {
         launch(Program.class, args);
     }
     
-    public void setView ( UINode view ) {
+    public void setView(UINode view) {
         
         if ( activeView != null ) {
             root.getChildren().remove(activeView);
@@ -103,8 +104,8 @@ public class Program extends Application {
         
     }
     
-    public void beginEditing ( Document file ) {
-        ViewIDE viewIDE = new ViewIDE(viewSize, file);
+    public void beginEditing(Document file) {
+        ViewIDE viewIDE = new ViewIDE(viewSize, file, this);
         setView(viewIDE);
     }
     

@@ -1,12 +1,10 @@
 package Project.Views.ViewIDE.DebugArea;
 
-import Project.Views.ViewIDE.LanguageDelegates.Delegate_f.VMDB.VMDebugger;
+import Project.Views.ViewIDE.LanguageDelegates.Delegate_f.VMDebugger;
 import Project.VirtualMachine.VMException;
 import javafx.scene.paint.Color;
 
 public class RuntimeView extends DebugAreaView {
-    
-    private VMDebugger debugger;
     
     public RuntimeView(double width, double height, double fontSize, double spacing) {
         
@@ -14,14 +12,12 @@ public class RuntimeView extends DebugAreaView {
         
     }
     
-    public void setDebugger(VMDebugger debugger) {
-        this.debugger = debugger;
-    }
-    
     @Override
     public void refresh() {
         
         super.refresh();
+        
+        VMDebugger debugger = getDebugger();
         
         if (debugger == null) {
             return;

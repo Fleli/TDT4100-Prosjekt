@@ -80,7 +80,7 @@ public class UIConsoleLine extends UINode {
     }
     
     public void print(String text) {
-        print(text, Color.BLACK, "");
+        print(text, Color.WHITE, "");
     }
     
     public void newLine() {

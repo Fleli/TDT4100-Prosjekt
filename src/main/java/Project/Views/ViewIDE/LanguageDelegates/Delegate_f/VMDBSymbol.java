@@ -1,4 +1,4 @@
-package Project.Views.ViewIDE.LanguageDelegates.Delegate_f.VMDB;
+package Project.Views.ViewIDE.LanguageDelegates.Delegate_f;
 
 public class VMDBSymbol {
     

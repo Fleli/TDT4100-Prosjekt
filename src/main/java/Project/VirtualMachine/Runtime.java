@@ -11,7 +11,7 @@ import Project.Compiler.InstructionGeneration.Instruction;
 import Project.Compiler.InstructionGeneration.InstructionList;
 import Project.Compiler.Parser.StatementTypes.Declaration;
 import Project.Views.ViewIDE.DebugArea.ConsoleView;
-import Project.Views.ViewIDE.LanguageDelegates.Delegate_f.VMDB.VMDebugger;
+import Project.Views.ViewIDE.LanguageDelegates.Delegate_f.VMDebugger;
 import Project.VirtualMachine.Heap.VMHeap;
 import Project.VirtualMachine.Heap.VMHeapArea;
 
@@ -19,7 +19,7 @@ public class Runtime {
     
     private static final List<String> opcodeNames = new ArrayList<>( Arrays.asList(
         "END", "PRINT", "NEWVAR", "PUSHFRAME", "POPFRAME", "ADD", "SUB", "MUL", "DIV", "BITAND", "BITOR", "BITXOR",
-        "NOTEQ", "EQ", "MOD", "SMALLER", "GREATER", "NOTINUSE17", "NOTINUSE18", "NOTINUSE19", "NOTINUSE20",
+        "NOTEQ", "EQ", "MOD", "LESSTHAN", "GREATERTHAN", "NOTINUSE17", "NOTINUSE18", "NOTINUSE19", "NOTINUSE20",
         "NOTINUSE21", "BITNOT", "NEGATE", "NOTINUSE24", "NOTINUSE25", "NOTINUSE26", "NOTINUSE27", "PUSHINT",
         "PUSHVAR", "POPASSIGN", "ALLOCATE", "ADJUSTPC", "ADJUSTATZERO", "ADJUSTSP", "HEAPASSIGN", "HEAPFETCH",
         "PRINTINT", "NEWLINE", "HEAPOFFSET", "DEALLOC"
@@ -40,7 +40,7 @@ public class Runtime {
     
     public static boolean printDebugInfo = false;
     
-    private List<VMHeapArea> memoryLeaks;
+    private List<VMHeapArea> usedHeap;
     
     public Runtime(InstructionList instructions, int requiredStack, int requiredHeap, ConsoleView console) {
         
@@ -67,8 +67,8 @@ public class Runtime {
         
     }
     
-    public List<VMHeapArea> getMemoryLeaks() {
-        return memoryLeaks;
+    public List<VMHeapArea> getHeapUsage() {
+        return usedHeap;
     }
     
     public DebugRegion getActiveDebugRegion() {
@@ -99,6 +99,11 @@ public class Runtime {
             int program_counter = instructionMemory.getProgramCounter();
             debugger.setProgram_counter(program_counter);
             
+            usedHeap = heap.getUsed();
+            
+            debugger.setAllocations(usedHeap);
+            debugger.setHeapData(heap.getAllData());
+            
         }
         
         int opcode = instruction.getOpcode_or_operand();
@@ -110,11 +115,11 @@ public class Runtime {
             System.out.println(s.toString());
         }
         
-        switch ( opcode ) {
+        switch (opcode) {
             
             case 0: {                           //      END
                 shouldExit = true;
-                memoryLeaks = heap.getUsed();
+                usedHeap = heap.getUsed();
                 break;
             } case 1: {                         //      PRINT
                 instruction_PRINT();
@@ -268,8 +273,16 @@ public class Runtime {
         
         while ( data != 0 ) {
             
-            char[] nextChar = Character.toChars(data);
-            output.append(nextChar);
+            try {
+                    
+                char[] nextChar = Character.toChars(data);
+                output.append(nextChar);
+                
+            } catch (Exception exception) {
+                
+                throw new VMException("Illegal character (" + data + ") in print.", "execution");
+                
+            }
             
             stringPointer = (stringPointer + 1) % (heap.getSize());
             
@@ -291,6 +304,10 @@ public class Runtime {
         
         int arg1 = stack.pop();
         int arg2 = stack.pop();
+        
+        if ((operatorIndex == 3 || operatorIndex == 9) && arg1 == 0) {
+            throw new VMException("Division by zero is undefined.", "execution");
+        }
         
         List<BinaryOperator<Integer>> operators = new ArrayList<BinaryOperator<Integer>>( Arrays.asList(
             (y , x) -> x + y,

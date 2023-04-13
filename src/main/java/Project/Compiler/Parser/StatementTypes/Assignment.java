@@ -4,6 +4,7 @@ import Project.Compiler.InstructionGeneration.DebugRegion;
 import Project.Compiler.InstructionGeneration.InstructionList;
 import Project.Compiler.Lexer.Token;
 import Project.Compiler.NameBinding.Environment;
+import Project.Compiler.Optimizer.Optimizer;
 import Project.Compiler.Parser.Statement;
 import Project.Compiler.Parser.Expressions.Expression;
 
@@ -76,6 +77,12 @@ public class Assignment implements Statement {
         localIndexOfLhs = environment.bind_and_get_local_index(lhs, lhsToken, partOfDeclaration);
         
         rhs.bind_names(environment);
+        
+    }
+    
+    public void constantFold(Optimizer optimizer) {
+        
+        rhs.constantFold(optimizer);
         
     }
     

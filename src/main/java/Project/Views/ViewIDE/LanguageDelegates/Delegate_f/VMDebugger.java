@@ -1,9 +1,10 @@
-package Project.Views.ViewIDE.LanguageDelegates.Delegate_f.VMDB;
+package Project.Views.ViewIDE.LanguageDelegates.Delegate_f;
 
 import java.util.ArrayList;
 import java.util.List;
 
 import Project.Compiler.Parser.StatementTypes.Declaration;
+import Project.VirtualMachine.Heap.VMHeapArea;
 
 public class VMDebugger {
     
@@ -16,6 +17,10 @@ public class VMDebugger {
     private int lastInstruction_opcode;
     private Integer lastInstruction_operand;
     private int program_counter;
+    
+    private int[] heapData;
+    
+    private List<VMHeapArea> allocations;
     
     public VMDebugger() {
         
@@ -97,6 +102,33 @@ public class VMDebugger {
         sb.append("Program counter = " + program_counter);
         
         return sb.toString();
+        
+    }
+    
+    public void setAllocations(List<VMHeapArea> allocations) {
+        this.allocations = allocations;
+    }
+    
+    public List<VMHeapArea> getAllocations() {
+        return new ArrayList<VMHeapArea>(allocations);
+    }
+    
+    public void setHeapData(int[] heapData) {
+        this.heapData = heapData;
+    }
+    
+    public int[] getDataAtAllocation(VMHeapArea allocation) {
+        
+        int length = allocation.getSize();
+        int pointer = allocation.getAddress();
+        
+        int[] data = new int[length];
+        
+        for (int i = 0 ; i < length ; i++) {
+            data[i] = heapData[pointer + i];
+        }
+        
+        return data;
         
     }
     

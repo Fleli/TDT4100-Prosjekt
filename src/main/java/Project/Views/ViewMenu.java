@@ -18,6 +18,9 @@ public class ViewMenu extends UIView {
     private static final double     logoWithAndHeight   =   250;
     private static final UISize     buttonSize          =   new UISize(300, 80);
     
+    private static final double     newFileWindowWidth  =   600;
+    private static final double     newFileWindowHeight =   400; 
+    
     private UIButton btn_newFile    = new UIButton( 
         new Point2D(fromLeftEdge, logoFromTop + logoWithAndHeight + logoToButtons + (buttonSize.height + buttonSpace) * 0), 
         buttonSize, 
@@ -36,6 +39,8 @@ public class ViewMenu extends UIView {
         "Innstillinger"
     );
     
+    private NewFileWindow newFileWindow;
+    
     private ImageView imgView_logo = new ImageView( new Image(
         "file:TDT4100-prosjekt-frederee/src/main/java/Project/Images/xcodelogo.png",
         logoWithAndHeight, logoWithAndHeight, true, true
@@ -46,6 +51,13 @@ public class ViewMenu extends UIView {
         super(size);
         
         setMainProgram(mainProgram);
+        
+        newFileWindow = new NewFileWindow(newFileWindowWidth, newFileWindowHeight, 16, mainProgram);
+        newFileWindow.setViewOrder(-5);
+        newFileWindow.setVisible(false);
+        newFileWindow.setBackgroundColor(150, 150, 150, 0.75);
+        newFileWindow.setWindowColor(230, 240, 230);
+        addChild(newFileWindow);
         
         setBackgroundColor(180, 200, 190);
         
@@ -62,15 +74,19 @@ public class ViewMenu extends UIView {
         addChild(btn_settings);
         
         btn_newFile.setActionInside( () -> {
-            viewTransition( new ViewNewFile(size, mainProgram()) );
+            newFileWindow.setVisible(true);
         });
         
         btn_openFile.setActionInside( () -> {
             
+            if (newFileWindow.isVisible()) return;
+            
             try {
                 viewTransition( new ViewFileBrowser(size, FileInterface.getAllDocuments(), mainProgram) );
             } catch (Exception e) {
-                System.out.println(e);
+                System.out.println("FEIL:");
+                System.out.println(e.getLocalizedMessage());
+                System.exit(1);
             }
             
         });

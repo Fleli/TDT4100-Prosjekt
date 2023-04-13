@@ -8,6 +8,7 @@ import Project.Compiler.InstructionGeneration.DebugRegion;
 import Project.Compiler.InstructionGeneration.InstructionList;
 import Project.Compiler.Lexer.Token;
 import Project.Compiler.NameBinding.Environment;
+import Project.Compiler.Optimizer.Optimizer;
 import Project.Compiler.Parser.Statement;
 
 /**
@@ -158,7 +159,75 @@ public class Expression implements Statement {
         }
         
     }
-
+    
+    public void constantFold(Optimizer optimizer) {
+        
+        System.out.println("In constant fold of " + description());
+        
+        if (type.equals("binary")) {
+            
+            arg1.constantFold(optimizer);
+            arg2.constantFold(optimizer);
+            
+            if (arg1.type.equals("literal") && arg2.type.equals("literal")) {
+                
+                int a = arg1.literalValue;
+                int b = arg2.literalValue;
+                
+                boolean isDivision = (operator.getSyntax() == "/" || operator.getSyntax() == "%");
+                
+                debugRegion = new DebugRegion(arg1.debugRegion, arg2.debugRegion);
+                
+                if (isDivision && b == 0) {
+                    optimizer.submitError(
+                        "Division by zero will yield runtime error.", 
+                        debugRegion
+                    );
+                    return;
+                }
+                
+                type = "literal";
+                literalValue = operator.apply(a, b);
+                
+                optimizer.submitOptimization(
+                    debugRegion.start_line, 
+                    "Constant fold: " + a + " " + operator.getSyntax() + " " + b + " -> " + literalValue
+                );
+                
+                arg1 = null;
+                arg2 = null;
+                operator = null;
+                
+            }
+            
+        } else if (type.equals("unary")) {
+            
+            arg1.constantFold(optimizer);
+            
+            if (arg1.type.equals("literal")) {
+                
+                int a = arg1.literalValue;
+                
+                type = "literal";
+                literalValue = operator.apply(a);
+                
+                debugRegion = new DebugRegion(arg1.debugRegion, debugRegion);
+                
+                optimizer.submitOptimization(
+                    debugRegion.start_line, 
+                    "Constant fold (unary)"
+                );
+                
+            }
+            
+        } else if (type == "heapAccess"  ||  type == "alloc") {
+            
+            arg1.constantFold(optimizer);
+            
+        }
+        
+    }
+    
     @Override
     public InstructionList generateInstructions(Environment environment) {
         

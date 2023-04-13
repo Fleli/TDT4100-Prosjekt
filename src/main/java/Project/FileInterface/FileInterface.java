@@ -39,24 +39,27 @@ public class FileInterface {
         int month = now.getMonthValue();
         int year = now.getYear();
         
-        String fileContent = 
+        String fileContent_plaintext = 
               extension     + "$"
-            + fileName      + "$" 
-            + author        + "$" 
+            + fileName      + "$"
+            + author        + "$"
             + day           + "$"
             + month         + "$"
             + year          + "$"
             + day           + "$"
             + month         + "$"
             + year          + "$"
-            + "# Created by " + author + " on " + day + "/" + month + "/" + year + "."
-            + "\n# This is a .f source code file."
-            + "\n# This code is subject to local copyright law."
+            + "# " + fileName + "." + extension
+            + "\n# Opprettet av " + author + " " + day + "/" + month + "/" + year + "."
+            + "\n# Dette er en .f-kildekodefil. "
+            + "\n# Åndsverkslovens kapittel 3, §§ 41-42 kan være aktuelle i forbindelse med denne filen."
             + "\n\n"
         ;
         
+        String encryptedContent = Encryption.encrypt(fileContent_plaintext);
+        
         BufferedWriter writer = new BufferedWriter( new FileWriter(filePath + fileName + "." + extension) );
-        writer.write(fileContent, 0, fileContent.length());
+        writer.write(encryptedContent, 0, encryptedContent.length());
         writer.close();
         
     }
@@ -78,7 +81,7 @@ public class FileInterface {
         
         String name, 
         String extension
-    
+        
     ) throws IOException {
         
         if ( !fileExists(name, extension) ) {
@@ -118,7 +121,9 @@ public class FileInterface {
         
         reader.close();
         
-        return new Document(fileContent.toString(), file.length());
+        String decryptedContent = Encryption.decrypt(fileContent.toString());
+        
+        return new Document(decryptedContent, file.length());
         
     }
     
@@ -138,7 +143,7 @@ public class FileInterface {
         File[] folderContent = folder.listFiles();
         
         for ( File file : folderContent ) {
-            documents.add( getDocumentFromFile(file) );
+            documents.add(getDocumentFromFile(file));
         }
         
         return new DocumentList(documents);
@@ -153,9 +158,14 @@ public class FileInterface {
             throw new IOException("The file " + document.getFileNameWithExtension() + " does not exist.");
         }
         
+        document.updateOpenedDate();
+        
         BufferedWriter writer = new BufferedWriter( new FileWriter(file) );
         
-        writer.write ( document.getStorableString() );
+        String content = document.getStorableString();
+        String encrypted = Encryption.encrypt(content);
+        
+        writer.write(encrypted);
         
         writer.close();
         

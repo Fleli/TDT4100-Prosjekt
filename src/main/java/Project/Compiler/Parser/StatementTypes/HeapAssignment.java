@@ -4,6 +4,7 @@ import Project.Compiler.InstructionGeneration.DebugRegion;
 import Project.Compiler.InstructionGeneration.InstructionList;
 import Project.Compiler.Lexer.Token;
 import Project.Compiler.NameBinding.Environment;
+import Project.Compiler.Optimizer.Optimizer;
 import Project.Compiler.Parser.Statement;
 import Project.Compiler.Parser.Expressions.Expression;
 
@@ -32,7 +33,12 @@ public class HeapAssignment implements Statement {
         address.bind_names(environment);
         value.bind_names(environment);
     }
-
+    
+    public void constantFold(Optimizer optimizer) {
+        address.constantFold(optimizer);
+        value.constantFold(optimizer);
+    }
+    
     @Override
     public InstructionList generateInstructions(Environment environment) {
         

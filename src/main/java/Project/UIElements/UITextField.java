@@ -11,9 +11,10 @@ import javafx.scene.text.Font;
 
 public class UITextField extends UIButton {
     
-    private static final String allowed_chars = 
-        "abcdefghijklmnopqrstuvwxyzæøåABCDEFGHIJKLMNOPQRSTUVWXYZÆØÅ0123456789()[]{}<>@\"\'+-*/%$#^&| :;_.,=!";
-        
+    private String allowed_chars = 
+        "abcdefghijklmnopqrstuvwxyzæøåABCDEFGHIJKLMNOPQRSTUVWXYZÆØÅ0123456789()[]{}<>@\"\'+-*/%$#^&| :;_.,=!§"
+    ;
+    
     private static final double cursorWidth = 1.5;
     
     private static final long blinkTime = 500;
@@ -35,6 +36,10 @@ public class UITextField extends UIButton {
     private Timer cursorBlinkTimer = new Timer();
     
     private UILabel attributedText;
+    
+    private int charLimit = 1000;
+    
+    private Color placeholderTextColor = Color.rgb(125, 125, 125, 1);
     
     @Override
     public void mouseDown(Point2D location) {
@@ -126,6 +131,10 @@ public class UITextField extends UIButton {
         
     }
     
+    public void setCharLimit(int limit) {
+        charLimit = limit;
+    }
+    
     public void activate() {
         isActive = true;
         refreshUI();
@@ -136,12 +145,16 @@ public class UITextField extends UIButton {
         refreshUI();
     }
     
+    public void setPlaceholderTextColor(Color placeholderTextColor) {
+        this.placeholderTextColor = placeholderTextColor;
+    }
+    
     public void refreshUI() {
         
         if ( stringBuilder.length() == 0 ) {
             
             // Vis default-tekst og gray ut
-            setMainLabelFontColor( Color.rgb(125, 125, 125, 1) );
+            setMainLabelFontColor(placeholderTextColor);
             setText(defaultText);
             
         } else {
@@ -310,17 +323,29 @@ public class UITextField extends UIButton {
     }
     
     public void writeText(String text) {
-        stringBuilder.insert(cursorIndex, text);
-        cursorIndex += text.length();
+        
+        for (Character c : text.toCharArray()) {
+            
+            if (!allowed_chars.contains(c.toString())) {
+                continue;
+            }
+            
+            if (this.getText().length() >= charLimit) {
+                break;
+            }
+            
+            stringBuilder.insert(cursorIndex, c);
+            cursorIndex++;
+            
+        }
+        
         setAttributedText(null);
         refreshUI();
     }
     
     public void requestCursorIndex(int newCursorIndex) {
         
-        if ( newCursorIndex < 0 ) {
-            throw new IllegalStateException("New cursor index @ request cannot be " + newCursorIndex);
-        }
+        newCursorIndex = Math.max(0, newCursorIndex);
         
         int max = stringBuilder.length();
         cursorIndex = Math.min(newCursorIndex, max);
@@ -364,6 +389,25 @@ public class UITextField extends UIButton {
         double index = Math.round(index_nonInt);
         
         return (int) index;
+        
+    }
+    
+    public void setAllowedInput(String newAllowedChars) {
+        this.allowed_chars = newAllowedChars;
+    }
+    
+    /**
+     * Remove a certain character from the allowed characters list.
+     * @param s The regex describing the disallowed character
+     */
+    public void doNotAllow(String s) {
+        
+        int i = allowed_chars.indexOf("\\$");
+        
+        if (i >= 0) {
+            allowed_chars = allowed_chars.replaceAll(s, "");
+        } else {
+        }
         
     }
     

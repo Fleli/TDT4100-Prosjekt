@@ -2,6 +2,7 @@ package Project.Views.ViewIDE.DebugArea;
 
 import Project.UIElements.UIConsoleLine;
 import Project.UIElements.UINode;
+import Project.Views.ViewIDE.LanguageDelegates.Delegate_f.VMDebugger;
 import javafx.scene.paint.Color;
 import javafx.scene.shape.Rectangle;
 
@@ -16,11 +17,15 @@ public class DebugAreaView extends UINode {
     private UIConsoleLine topLine;
     private UIConsoleLine currentLine;
     
+    private double scroll = 0;
+    
     private Rectangle background;
     
     private int lineCount = 1;
     
     private int max_chars;
+    
+    private VMDebugger debugger;
     
     public DebugAreaView(double width, double height) {
         
@@ -31,7 +36,16 @@ public class DebugAreaView extends UINode {
         max_chars = (int) Math.floor(width / (fontSize * 0.6));
         
         clear();
+        fitInBounds();
         
+    }
+    
+    public void setDebugger(VMDebugger debugger) {
+        this.debugger = debugger;
+    }
+    
+    public VMDebugger getDebugger() {
+        return debugger;
     }
     
     public double getFontSize() {
@@ -98,6 +112,13 @@ public class DebugAreaView extends UINode {
         
     }
     
+    public void finishedViewUpdate_moveToScroll() {
+        
+        topLine.setTranslateY(scroll);
+        fitInBounds();
+        
+    }
+    
     public void newLine() {
         print("\n");
     }
@@ -114,6 +135,8 @@ public class DebugAreaView extends UINode {
         y = Math.max(y, (2 - lineCount) * (fontSize + UIConsoleLine.spacing) + topPadding);
         
         topLine.setTranslateY(y);
+        
+        scroll = y;
         
     }
     

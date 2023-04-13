@@ -2,15 +2,13 @@ package Project.Views.ViewIDE.DebugArea;
 
 import java.util.List;
 
-import Project.Views.ViewIDE.LanguageDelegates.Delegate_f.VMDB.VMDBSymbol;
-import Project.Views.ViewIDE.LanguageDelegates.Delegate_f.VMDB.VMDebugger;
+import Project.Views.ViewIDE.LanguageDelegates.Delegate_f.VMDBSymbol;
+import Project.Views.ViewIDE.LanguageDelegates.Delegate_f.VMDebugger;
 
 /**
  * Area for displaying active variables stored on the stack.
  */
 public class StackView extends DebugAreaView {
-    
-    private VMDebugger debugger;
     
     public StackView(double width, double height, double fontSize, double spacing) {
         
@@ -20,14 +18,12 @@ public class StackView extends DebugAreaView {
         
     }
     
-    public void setDebugger(VMDebugger debugger) {
-        this.debugger = debugger;
-    }
-    
     @Override
     public void refresh() {
         
         super.refresh();
+        
+        VMDebugger debugger = getDebugger();
         
         if (debugger == null) {
             return;

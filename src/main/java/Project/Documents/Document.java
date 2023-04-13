@@ -1,6 +1,7 @@
 package Project.Documents;
 
 import java.io.IOException;
+import java.time.LocalDateTime;
 
 public class Document {
     
@@ -161,11 +162,21 @@ public class Document {
         switch (extension) {
             case "f":
                 return "f-kildekodefil";
-            case "fmv":
+            case "fvm":
                 return "fvm-utførbar fil";
             default:
                 return extension + "-fil";
         }
+        
+    }
+    
+    public void updateOpenedDate() {
+        
+        LocalDateTime now = java.time.LocalDateTime.now();
+        
+        open_day = now.getDayOfMonth();
+        open_month = now.getMonthValue();
+        open_year = now.getYear();
         
     }
     

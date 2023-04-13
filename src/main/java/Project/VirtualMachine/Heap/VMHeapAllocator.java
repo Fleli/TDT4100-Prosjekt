@@ -41,6 +41,10 @@ public class VMHeapAllocator {
     
     public int allocate(int size, int allocLine) throws VMException {
         
+        if (size <= 0) {
+            throw new VMException("Cannot allocate heap space of " + size + " words", "heap allocator");
+        }
+        
         int passes = 0;
         
         int increment = necessaryIncrement(heapPointer, heapPointer + size - 1);

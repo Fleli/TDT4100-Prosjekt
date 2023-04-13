@@ -12,7 +12,7 @@ public class Operator {
      * and becomes less error-prone.
      */
     private final static List<String> unaryOperators = new ArrayList<String>( Arrays.asList(
-        "!", "-"
+        "~", "-"
     ) );
     
     /**
@@ -31,9 +31,11 @@ public class Operator {
     private int precedence;
     
     public Operator(String position, String syntax, int precedence) {
+        
         this.position = position;
         this.syntax = syntax;
         this.precedence = precedence;
+        
     }
     
     public String getPosition() {
@@ -56,6 +58,55 @@ public class Operator {
             return unaryOperators.indexOf(syntax) + 22;
         } else {
             throw new IllegalStateException("No such operation " + syntax + " exists in VM 'hardware' specification.");
+        }
+        
+    }
+
+    public Integer apply(Integer t, Integer u) {
+        
+        switch (syntax) {
+            case "+":
+                return t + u;
+            case "-":
+                return t - u;
+            case "*":
+                return t * u;
+            case "/":
+                return t / u;
+            case "&":
+                return t & u;
+            case "|":
+                return t | u;
+            case "^":
+                return t ^ u;
+            case "!=":
+                return (t != u) ? 1 : 0;
+            case "==":
+                return (t == u) ? 1 : 0;
+            case "%":
+                return t % u;
+            case "<":
+                return (t < u) ? 1 : 0;
+            case ">":
+                return (t > u) ? 1 : 0;
+            default:
+                System.exit(1);
+                throw new IllegalStateException("Unknown syntax " + syntax);
+        }
+        
+    }
+    
+    public Integer apply(int a) {
+        
+        switch (syntax) {
+            case "~":
+                return ~a;
+            case "-":
+                return -a;
+            default:
+                System.exit(1);
+                throw new IllegalStateException("Unknown syntax " + syntax);
+                
         }
         
     }

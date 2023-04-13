@@ -57,7 +57,7 @@ public class InstructionList implements Iterable<Instruction> {
         return statement.description();
     }
     
-    public Instruction get ( int index ) {
+    public Instruction get(int index) {
         return instructions.get(index);
     }
 

@@ -38,7 +38,7 @@ public class ExpressionParser {
         operators.add( new Operator("infix", "/", 7) );
         operators.add( new Operator("infix", "%", 7) );
         
-        // legg til ! her senere
+        // legg til ~ her senere
         
         for ( Operator operator : operators ) {
             

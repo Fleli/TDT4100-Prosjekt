@@ -1,5 +1,6 @@
 package Project.Views.ViewIDE.LanguageDelegates;
 
+import Project.UIElements.UIAction;
 import Project.UIElements.UICodeLine;
 import Project.UIElements.UINode;
 import javafx.scene.paint.Color;
@@ -7,14 +8,15 @@ import javafx.scene.paint.Color;
 public interface LanguageDelegate {
     
     public UINode getIDEUpperBand(Color color, double height, UICodeLine topLine);
-    public UINode getIDELowerBand(Color color, double height);
+    public UINode getIDELowerBand(Color color, UICodeLine topLine);
     
     public UINode getDebugArea();
     
-    public void run();
-    public void run(String sourceCode, int stack_size, int heap_size);
+    public void run(UICodeLine topLine);
     
-    public void debug();
+    public void setBackToMenuAction(UIAction action);
+    
+    public void debug(UICodeLine topLine);
     public void debugger_nextClock(UICodeLine topLine);
     
     public void syntaxHighlight(UICodeLine line);
@@ -28,5 +30,7 @@ public interface LanguageDelegate {
      * line at the top (first in the {@code UICodeLine} linked list)
      */
     public void reactOnTextWritten(UICodeLine topLine);
+    
+    public void ctrlRight(UICodeLine topLine);
     
 }

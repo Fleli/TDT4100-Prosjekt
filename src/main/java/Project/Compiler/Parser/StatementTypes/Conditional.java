@@ -6,6 +6,7 @@ import Project.Compiler.InstructionGeneration.DebugRegion;
 import Project.Compiler.InstructionGeneration.InstructionList;
 import Project.Compiler.Lexer.Token;
 import Project.Compiler.NameBinding.Environment;
+import Project.Compiler.Optimizer.Optimizer;
 import Project.Compiler.Parser.Statement;
 import Project.Compiler.Parser.Expressions.Expression;
 
@@ -87,6 +88,20 @@ public class Conditional implements Statement {
         
         if ( otherwise != null ) {
             otherwise.bind_names(environment);
+        }
+        
+    }
+    
+    public void constantFold(Optimizer optimizer) {
+        
+        condition.constantFold(optimizer);
+        
+        for (Statement statement : body) {
+            statement.constantFold(optimizer);
+        }
+        
+        if (otherwise != null) {
+            otherwise.constantFold(optimizer);
         }
         
     }

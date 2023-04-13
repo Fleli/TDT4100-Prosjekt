@@ -65,6 +65,10 @@ public class VMHeap {
         allocator.printUsed();
     }
     
+    public int[] getAllData() {
+        return data;
+    }
+    
     @Override
     public String toString() {
         return "Heap sized " + size + " with data: \n" + Arrays.toString(data) + " and allocator status:\n" + allocator.toString();
