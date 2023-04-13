@@ -1,7 +1,7 @@
 package Project.UIElements;
 
 import Project.Program;
-import Project.Documents.Document;
+import Project.FileInterface.Document;
 import javafx.geometry.Point2D;
 import javafx.scene.control.Label;
 import javafx.scene.image.Image;

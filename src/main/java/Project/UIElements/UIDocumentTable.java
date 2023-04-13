@@ -3,8 +3,8 @@ package Project.UIElements;
 import java.util.List;
 
 import Project.Program;
-import Project.Documents.Document;
-import Project.Documents.DocumentList;
+import Project.FileInterface.Document;
+import Project.FileInterface.DocumentList;
 import javafx.scene.input.KeyCode;
 import javafx.scene.input.KeyEvent;
 

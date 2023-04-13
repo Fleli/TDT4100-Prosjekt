@@ -5,7 +5,7 @@ import java.util.List;
 
 import Project.Compiler.Compiler.Error;
 import Project.Compiler.Lexer.Token;
-import Project.Compiler.Parser.StatementTypes.Declaration;
+import Project.Compiler.Statements.Declaration;
 
 /**
  * Inneholder en liste med {@code entries} (variabler og offsets) 

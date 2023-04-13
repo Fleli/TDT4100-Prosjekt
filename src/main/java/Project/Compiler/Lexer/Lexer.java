@@ -52,7 +52,11 @@ public class Lexer {
     
     public void lex() {
         
-        if ( text == null ) throw new IllegalStateException("Cannot lex when specified input is null. Use the setInput(String) method to specify an input.");
+        if ( text == null ) {
+            throw new IllegalStateException(
+                "Cannot lex when specified input is null. Use the setInput(String) method to specify an input."
+            );
+        }
         
         index = 0;
         line = 1;
@@ -218,7 +222,7 @@ public class Lexer {
             appendAndIncrement(token);
         }
         
-        if ( index >= text.length() ) {
+        if ( index >= text.length()  ||  text.charAt(index) == '\n' ) {
             submitError("Expected '\"' before end of line to terminate string literal.", token);
         } else {
             appendAndIncrement(token);

@@ -1,4 +1,4 @@
-package Project.Views.ViewIDE.LanguageDelegates;
+package Project.Views.ViewIDE.LanguageDelegate;
 
 import Project.UIElements.UIAction;
 import Project.UIElements.UICodeLine;

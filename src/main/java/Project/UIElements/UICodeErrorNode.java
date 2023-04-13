@@ -62,10 +62,8 @@ public class UICodeErrorNode extends UIButton {
     }
     
     public void addError(Error error) {
-        
         setVisible(true);
         errors.add(error);
-        
     }
     
     public boolean isEmpty() {
@@ -105,7 +103,7 @@ public class UICodeErrorNode extends UIButton {
             double ty = index * (fontSize + spacing);
             
             UICodeErrorMessageLine errorLine = new UICodeErrorMessageLine(
-                error.getMessage(), 
+                error.getMessage(),
                 lineWidth - 200, 
                 fontSize + spacing, 
                 fontSize,

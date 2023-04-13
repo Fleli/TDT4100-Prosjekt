@@ -1,9 +1,9 @@
-package Project.Views.ViewIDE.LanguageDelegates.Delegate_f;
+package Project.Views.ViewIDE.LanguageDelegate;
 
 import java.util.ArrayList;
 import java.util.List;
 
-import Project.Compiler.Parser.StatementTypes.Declaration;
+import Project.Compiler.Statements.Declaration;
 import Project.VirtualMachine.Heap.VMHeapArea;
 
 public class VMDebugger {
@@ -23,10 +23,8 @@ public class VMDebugger {
     private List<VMHeapArea> allocations;
     
     public VMDebugger() {
-        
         vmdb_stack = new int[256];
         vmdb_symbols = new String[256];
-        
     }
     
     public void push_new_var(Declaration declaration) {

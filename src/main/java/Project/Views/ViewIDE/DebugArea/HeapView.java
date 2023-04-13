@@ -2,7 +2,7 @@ package Project.Views.ViewIDE.DebugArea;
 
 import java.util.List;
 
-import Project.Views.ViewIDE.LanguageDelegates.Delegate_f.VMDebugger;
+import Project.Views.ViewIDE.LanguageDelegate.VMDebugger;
 import Project.VirtualMachine.Heap.VMHeapArea;
 import javafx.scene.paint.Color;
 

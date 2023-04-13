@@ -1,4 +1,4 @@
-package Project.Compiler.Parser.Expressions;
+package Project.Compiler.Parser;
 
 import java.util.ArrayList;
 import java.util.Arrays;

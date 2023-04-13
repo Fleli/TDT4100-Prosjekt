@@ -1,5 +1,6 @@
 package Project.UIElements;
 
+import java.util.ArrayList;
 import java.util.List;
 
 import Project.Compiler.Compiler.Error;
@@ -71,9 +72,6 @@ public class UICodeLine extends UITextField {
         ga = g + 20;
         ba = b + 20;
         
-        errorNode = new UICodeErrorNode(this);
-        addChild(errorNode);
-        
         if (ide.notLoading()) {
              
             for ( int i = 0 ; i < indentation ; i++ ) {
@@ -81,11 +79,9 @@ public class UICodeLine extends UITextField {
             }
             
         }
-            
+        
         refreshUI();
         setCorrectFill();
-        
-        doNotAllow("\\$");
         
     }
     
@@ -194,7 +190,7 @@ public class UICodeLine extends UITextField {
         
         UICodeLine oldBelow = line_below;
         
-        removeLineBelow();
+        detachLineBelow();
         
         setLineBelow(newBelow);
         
@@ -226,16 +222,15 @@ public class UICodeLine extends UITextField {
         ide.setActiveLine(line_above);
         
         line_above.moveFarRight();
-        line_above.writeText(textAtRight);
+        line_above.writeTextButDoNotAdjustCursor(textAtRight);
         
         UICodeLine line_above_this = line_above;
         UICodeLine line_below_this = line_below;
         
-        line_above_this.removeLineBelow();
+        line_above_this.detachLineBelow();
         
         if ( line_below_this != null ) {
-            removeLineBelow();
-            line_above_this.moveFarRight();
+            detachLineBelow();
             line_above_this.setLineBelow(line_below_this);
             line_below_this.setLineNumber(lineNumber);
         }
@@ -245,7 +240,7 @@ public class UICodeLine extends UITextField {
         
     }
     
-    public void removeLineBelow() {
+    public void detachLineBelow() {
         
         if ( line_below == null ) {
             return;
@@ -328,24 +323,29 @@ public class UICodeLine extends UITextField {
             ide.setActiveLine(this);
             ide.refreshSyntaxHighlighting(this);
             didPressEnter();
-            /*didPressEnter();
-            didPressEnter();
-            ide.setActiveLine(this.line_below.line_below);*/
+            
+            ide.afterKeyDown();
             
         } else if ( text.equals("(")  &&  ide.notLoading() ) {
             
             writeText(")");
             moveLeft(1);
             
+            ide.afterKeyDown();
+            
         } else if ( text.equals("\"")  &&  ide.notLoading() ) {
             
             super.writeText("\"");
             moveLeft(1);
             
+            ide.afterKeyDown();
+            
         } else if ( text.equals("[") &&  ide.notLoading() ) {
             
             writeText("]");
             moveLeft(1);
+            
+            ide.afterKeyDown();
             
         }
         
@@ -387,7 +387,7 @@ public class UICodeLine extends UITextField {
             
         } else if ( error.getLine() != lineNumber ) {
             
-            throw new IllegalStateException("Error @ line " + error.getLine() + " but line " + lineNumber + "is last.");
+            throw new IllegalStateException("Error @ line " + error.getLine() + " but line " + lineNumber + " is last.");
             
         } else {
             
@@ -398,7 +398,13 @@ public class UICodeLine extends UITextField {
     }
     
     public List<Error> getErrors() {
-        return errorNode.getErrors();
+        
+        if (errorNode == null) {
+            return new ArrayList<Error>();
+        } else {
+            return errorNode.getErrors();
+        }
+        
     }
     
     public void finishedErrors() {
@@ -413,6 +419,11 @@ public class UICodeLine extends UITextField {
     }
     
     public void clearErrors() {
+        
+        if (errorNode == null) {
+            errorNode = new UICodeErrorNode(this);
+            addChild(errorNode);
+        }
         
         if ( !errorNode.isEmpty() ) {
             

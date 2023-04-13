@@ -3,7 +3,7 @@ package Project.Views;
 import java.io.IOException;
 
 import Project.Program;
-import Project.Documents.Document;
+import Project.FileInterface.Document;
 import Project.FileInterface.FileInterface;
 import Project.UIElements.UIButton;
 import Project.UIElements.UINode;

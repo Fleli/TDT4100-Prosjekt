@@ -1,4 +1,4 @@
-package Project.Views.ViewIDE.IDEs;
+package Project.Views.ViewIDE;
 
 import Project.UIElements.UISize;
 

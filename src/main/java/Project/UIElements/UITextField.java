@@ -12,7 +12,7 @@ import javafx.scene.text.Font;
 public class UITextField extends UIButton {
     
     private String allowed_chars = 
-        "abcdefghijklmnopqrstuvwxyzæøåABCDEFGHIJKLMNOPQRSTUVWXYZÆØÅ0123456789()[]{}<>@\"\'+-*/%$#^&| :;_.,=!§"
+        "abcdefghijklmnopqrstuvwxyzæøåABCDEFGHIJKLMNOPQRSTUVWXYZÆØÅ0123456789()[]{}<>\"\'+-*/%#^&| :;_.,=!§"
     ;
     
     private static final double cursorWidth = 1.5;
@@ -327,6 +327,7 @@ public class UITextField extends UIButton {
         for (Character c : text.toCharArray()) {
             
             if (!allowed_chars.contains(c.toString())) {
+                System.out.println("(@UITextField) Character " + c + " is not allowed in this textfield");
                 continue;
             }
             
@@ -394,21 +395,6 @@ public class UITextField extends UIButton {
     
     public void setAllowedInput(String newAllowedChars) {
         this.allowed_chars = newAllowedChars;
-    }
-    
-    /**
-     * Remove a certain character from the allowed characters list.
-     * @param s The regex describing the disallowed character
-     */
-    public void doNotAllow(String s) {
-        
-        int i = allowed_chars.indexOf("\\$");
-        
-        if (i >= 0) {
-            allowed_chars = allowed_chars.replaceAll(s, "");
-        } else {
-        }
-        
     }
     
 }

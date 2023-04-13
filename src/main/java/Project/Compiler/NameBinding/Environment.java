@@ -3,10 +3,9 @@ package Project.Compiler.NameBinding;
 import java.util.ArrayList;
 import java.util.List;
 
-import Project.Compiler.Parser.StatementTypes.Declaration;
-
 import Project.Compiler.Compiler.Error;
 import Project.Compiler.Lexer.Token;
+import Project.Compiler.Statements.Declaration;
 
 /**
  * Temporarily just works as wrapper class for Scope. However, once scopes

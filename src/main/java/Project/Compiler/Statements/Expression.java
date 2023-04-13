@@ -1,4 +1,4 @@
-package Project.Compiler.Parser.Expressions;
+package Project.Compiler.Statements;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -9,6 +9,7 @@ import Project.Compiler.InstructionGeneration.InstructionList;
 import Project.Compiler.Lexer.Token;
 import Project.Compiler.NameBinding.Environment;
 import Project.Compiler.Optimizer.Optimizer;
+import Project.Compiler.Parser.Operator;
 import Project.Compiler.Parser.Statement;
 
 /**
@@ -162,8 +163,6 @@ public class Expression implements Statement {
     
     public void constantFold(Optimizer optimizer) {
         
-        System.out.println("In constant fold of " + description());
-        
         if (type.equals("binary")) {
             
             arg1.constantFold(optimizer);
@@ -176,15 +175,19 @@ public class Expression implements Statement {
                 
                 boolean isDivision = (operator.getSyntax() == "/" || operator.getSyntax() == "%");
                 
-                debugRegion = new DebugRegion(arg1.debugRegion, arg2.debugRegion);
+                System.out.println(arg1.debugRegion);
+                System.out.println(arg2.debugRegion);
+                System.out.println(debugRegion);
                 
                 if (isDivision && b == 0) {
                     optimizer.submitError(
                         "Division by zero will yield runtime error.", 
-                        debugRegion
+                        arg2.debugRegion
                     );
                     return;
                 }
+                
+                debugRegion = new DebugRegion(arg1.debugRegion, arg2.debugRegion);
                 
                 type = "literal";
                 literalValue = operator.apply(a, b);

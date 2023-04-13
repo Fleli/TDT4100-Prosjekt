@@ -1,10 +1,10 @@
-package Project.Compiler.Parser.Expressions;
+package Project.Compiler.Parser;
 
 import java.util.ArrayList;
 import java.util.List;
 
 import Project.Compiler.Lexer.Token;
-import Project.Compiler.Parser.Parser;
+import Project.Compiler.Statements.Expression;
 
 public class ExpressionParser {
     
@@ -285,8 +285,13 @@ public class ExpressionParser {
         Token token = parser.token();
         
         StringBuilder including_quotes = new StringBuilder(token.content());
+        
         including_quotes.deleteCharAt(0);
-        including_quotes.deleteCharAt(including_quotes.length() - 1);
+        
+        int lastIndex = including_quotes.length() - 1;
+        if (including_quotes.charAt(lastIndex) == '\"') {
+            including_quotes.deleteCharAt(lastIndex);
+        }
         
         incrementIndex();
         

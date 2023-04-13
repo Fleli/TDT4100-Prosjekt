@@ -9,9 +9,9 @@ import java.util.function.UnaryOperator;
 import Project.Compiler.InstructionGeneration.DebugRegion;
 import Project.Compiler.InstructionGeneration.Instruction;
 import Project.Compiler.InstructionGeneration.InstructionList;
-import Project.Compiler.Parser.StatementTypes.Declaration;
+import Project.Compiler.Statements.Declaration;
 import Project.Views.ViewIDE.DebugArea.ConsoleView;
-import Project.Views.ViewIDE.LanguageDelegates.Delegate_f.VMDebugger;
+import Project.Views.ViewIDE.LanguageDelegate.VMDebugger;
 import Project.VirtualMachine.Heap.VMHeap;
 import Project.VirtualMachine.Heap.VMHeapArea;
 
@@ -41,6 +41,9 @@ public class Runtime {
     public static boolean printDebugInfo = false;
     
     private List<VMHeapArea> usedHeap;
+    
+    private int number_of_clock_cycles = 0;
+    private int clock_cycle_safety_limit = 100_000_000;
     
     public Runtime(InstructionList instructions, int requiredStack, int requiredHeap, ConsoleView console) {
         
@@ -78,6 +81,12 @@ public class Runtime {
     public void clock() throws VMException {
         
         Instruction instruction = instructionMemory.getNextInstruction();
+        
+        number_of_clock_cycles += 1;
+        
+        if (number_of_clock_cycles > clock_cycle_safety_limit) {
+            throw new VMException("Reached clock cycle limit", "execution");
+        }
         
         if (isDebug) {
             
@@ -463,9 +472,11 @@ public class Runtime {
     
     @Override
     public String toString() {
-        
         return "Stack: " + stack + "\nHeap: " + heap;
-        
+    }
+    
+    public int getNumberOfClockCycles() {
+        return number_of_clock_cycles;
     }
     
 }

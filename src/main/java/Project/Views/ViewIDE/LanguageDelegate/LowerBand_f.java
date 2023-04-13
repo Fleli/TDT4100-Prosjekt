@@ -1,11 +1,10 @@
-package Project.Views.ViewIDE.LanguageDelegates.Delegate_f;
+package Project.Views.ViewIDE.LanguageDelegate;
 
 import Project.Program;
 import Project.Compiler.Compiler.CompilerProfiler;
 import Project.UIElements.UICodeLine;
 import Project.UIElements.UINode;
 import Project.Views.ViewIDE.ViewIDE;
-import Project.Views.ViewIDE.LanguageDelegates.LanguageDelegate;
 import javafx.scene.control.Label;
 import javafx.scene.paint.Color;
 import javafx.scene.shape.Rectangle;
@@ -73,10 +72,6 @@ public class LowerBand_f extends UINode {
             }
             
             profilingInfoLabels[i].setText(stages[i] + rhs);
-            
-            
-            
-            
             
         }
         

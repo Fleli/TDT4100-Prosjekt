@@ -33,12 +33,6 @@ public class ViewMenu extends UIView {
         "Åpne fil"
     );
     
-    private UIButton btn_settings   = new UIButton( 
-        new Point2D(fromLeftEdge, logoFromTop + logoWithAndHeight + logoToButtons + (buttonSize.height + buttonSpace) * 2), 
-        buttonSize,
-        "Innstillinger"
-    );
-    
     private NewFileWindow newFileWindow;
     
     private ImageView imgView_logo = new ImageView( new Image(
@@ -61,17 +55,13 @@ public class ViewMenu extends UIView {
         
         setBackgroundColor(180, 200, 190);
         
-        btn_newFile.setSubLabelText("Lag en ny fil, for eksempel en .f-kildekodefil eller en tekstfil.");
+        btn_newFile.setSubLabelText("Opprett en ny .f-kildekodefil i programmets filmappe");
         btn_newFile.setFill(255, 255, 255);
         addChild(btn_newFile);
         
         btn_openFile.setSubLabelText("Åpne en fil som har blitt opprettet og lagret tidligere.");
         btn_openFile.setFill(255, 255, 255);
         addChild(btn_openFile);
-        
-        btn_settings.setSubLabelText("Se gjennom eller endre innstillingene for IDE-en.");
-        btn_settings.setFill(255, 255, 255);
-        addChild(btn_settings);
         
         btn_newFile.setActionInside( () -> {
             newFileWindow.setVisible(true);
@@ -89,10 +79,6 @@ public class ViewMenu extends UIView {
                 System.exit(1);
             }
             
-        });
-        
-        btn_settings.setActionInside( () -> {
-            //btn_settings.flipColor();
         });
         
         imgView_logo.setTranslateX(fromLeftEdge + buttonSize.width / 2 - logoWithAndHeight / 2);

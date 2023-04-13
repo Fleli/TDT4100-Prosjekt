@@ -1,6 +1,6 @@
 package Project.Views.ViewIDE.DebugArea;
 
-import Project.Views.ViewIDE.LanguageDelegates.Delegate_f.VMDebugger;
+import Project.Views.ViewIDE.LanguageDelegate.VMDebugger;
 import Project.VirtualMachine.VMException;
 import javafx.scene.paint.Color;
 

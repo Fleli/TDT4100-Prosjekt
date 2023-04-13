@@ -10,9 +10,6 @@ import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 
-import Project.Documents.Document;
-import Project.Documents.DocumentList;
-
 public class FileInterface {
     
     private static final String filePath = "TDT4100-prosjekt-frederee/src/main/java/Project/Files/";
@@ -40,19 +37,18 @@ public class FileInterface {
         int year = now.getYear();
         
         String fileContent_plaintext = 
-              extension     + "$"
-            + fileName      + "$"
-            + author        + "$"
-            + day           + "$"
-            + month         + "$"
-            + year          + "$"
-            + day           + "$"
-            + month         + "$"
-            + year          + "$"
+              extension     + "@"
+            + fileName      + "@"
+            + author        + "@"
+            + day           + "@"
+            + month         + "@"
+            + year          + "@"
+            + day           + "@"
+            + month         + "@"
+            + year          + "@"
             + "# " + fileName + "." + extension
             + "\n# Opprettet av " + author + " " + day + "/" + month + "/" + year + "."
             + "\n# Dette er en .f-kildekodefil. "
-            + "\n# Åndsverkslovens kapittel 3, §§ 41-42 kan være aktuelle i forbindelse med denne filen."
             + "\n\n"
         ;
         

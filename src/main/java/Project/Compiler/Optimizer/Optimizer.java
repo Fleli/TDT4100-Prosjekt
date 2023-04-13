@@ -28,8 +28,6 @@ public class Optimizer {
     
     public void optimize() {
         
-        System.out.println("Will optimize with configuration " + optimizerConfiguration);
-        
         optimizations = new ArrayList<Optimization>();
         errors = new ArrayList<Error>();
         
@@ -39,11 +37,9 @@ public class Optimizer {
             statement.constantFold(this);
         }
         
-        
-        
-        for (Optimization optimization : optimizations) {
-            System.out.println(optimization.getType());
-        }
+        // for (Optimization optimization : optimizations) {
+        //     System.out.println(optimization.getType());
+        // }
         
     }
     

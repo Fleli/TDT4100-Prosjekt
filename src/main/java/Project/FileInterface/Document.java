@@ -1,4 +1,4 @@
-package Project.Documents;
+package Project.FileInterface;
 
 import java.io.IOException;
 import java.time.LocalDateTime;
@@ -24,7 +24,7 @@ public class Document {
         
         // Men må aller først definere hvilke filformat som skal støttes, og hvordan disse skal lagres.
         
-        String[] split = file.split("\\$");
+        String[] split = file.split("@");
         
         if ( split.length != 10 ) {
             throw new IOException("The file is corrupt (does not obey the .f file format). Split was " + split.length + ". File was " + file);
@@ -144,15 +144,15 @@ public class Document {
         
         return 
                     getExtension()
-            + "$" + getFileName()
-            + "$" + getAuthor()
-            + "$" + getCreate_day()
-            + "$" + getCreate_month()
-            + "$" + getCreate_year()
-            + "$" + getOpen_day()
-            + "$" + getOpen_month()
-            + "$" + getOpen_year()
-            + "$" + getContent()
+            + "@" + getFileName()
+            + "@" + getAuthor()
+            + "@" + getCreate_day()
+            + "@" + getCreate_month()
+            + "@" + getCreate_year()
+            + "@" + getOpen_day()
+            + "@" + getOpen_month()
+            + "@" + getOpen_year()
+            + "@" + getContent()
         ;
         
     }
@@ -162,8 +162,6 @@ public class Document {
         switch (extension) {
             case "f":
                 return "f-kildekodefil";
-            case "fvm":
-                return "fvm-utførbar fil";
             default:
                 return extension + "-fil";
         }

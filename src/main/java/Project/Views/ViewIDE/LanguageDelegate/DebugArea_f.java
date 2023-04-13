@@ -1,4 +1,4 @@
-package Project.Views.ViewIDE.LanguageDelegates.Delegate_f;
+package Project.Views.ViewIDE.LanguageDelegate;
 
 import java.util.List;
 
@@ -151,7 +151,9 @@ public class DebugArea_f extends UINode {
         runtime.notifyException(exception);
     }
     
-    public void finishedRun(List<VMHeapArea> leaks) {
+    public void finishedRun(List<VMHeapArea> leaks, int number_of_clock_cycles) {
+        
+        runtime.clear();
         
         if (leaks != null  &&  leaks.size() > 0) {
             
@@ -176,8 +178,7 @@ public class DebugArea_f extends UINode {
             
         } else {
             
-            runtime.clear();
-            runtime.print("Successfully finished execution.", Color.WHITE, "-fx-font-weight: bold;");
+            runtime.print("Successfully finished execution.\n\n", Color.WHITE, "-fx-font-weight: bold;");
             
         }
         
@@ -186,6 +187,9 @@ public class DebugArea_f extends UINode {
         
         allocations.clear();
         allocations.print("To see allocations live,\nrun in debug mode", Color.WHITE, "-fx-font-weight: bold;");
+        
+        runtime.print("Number of clock cycles:\n", Color.LIGHTGREEN, "");
+        runtime.print("  " + number_of_clock_cycles + "\n", Color.LIGHTGREEN, "");
         
     }
     

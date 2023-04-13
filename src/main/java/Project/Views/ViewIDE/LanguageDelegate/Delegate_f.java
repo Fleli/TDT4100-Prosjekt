@@ -1,4 +1,4 @@
-package Project.Views.ViewIDE.LanguageDelegates.Delegate_f;
+package Project.Views.ViewIDE.LanguageDelegate;
 
 import java.util.List;
 
@@ -15,16 +15,15 @@ import Project.UIElements.UICodeLine;
 import Project.UIElements.UILabel;
 import Project.UIElements.UINode;
 import Project.UIElements.UISize;
+import Project.Views.ViewIDE.IDE;
 import Project.Views.ViewIDE.DebugArea.ConsoleView;
-import Project.Views.ViewIDE.IDEs.IDE;
-import Project.Views.ViewIDE.LanguageDelegates.LanguageDelegate;
 import javafx.scene.paint.Color;
 import javafx.scene.shape.SVGPath;
 
 public class Delegate_f implements LanguageDelegate {
     
-    public static final int default_stack_size = 1024;
-    public static final int default_heap_size = 1024;
+    public static final int default_stack_size = 2048;
+    public static final int default_heap_size = 2048;
     
     private IDE ide;
     
@@ -77,8 +76,9 @@ public class Delegate_f implements LanguageDelegate {
             runtime.run();
             
             List<VMHeapArea> leaks = runtime.getHeapUsage();
+            int number_of_clock_cycles = runtime.getNumberOfClockCycles();
             
-            debugArea.finishedRun(leaks);
+            debugArea.finishedRun(leaks, number_of_clock_cycles);
             
         } catch (VMException exception) {
             
@@ -350,7 +350,7 @@ public class Delegate_f implements LanguageDelegate {
         
         String sourceCode = topLine.recursivelyFetchSourceCode();
         
-        compiler.compile(sourceCode, false);
+        compiler.compile(sourceCode, false, 1);
         
         topLine.clearErrors();
         

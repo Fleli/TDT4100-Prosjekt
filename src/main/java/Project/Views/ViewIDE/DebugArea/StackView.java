@@ -2,8 +2,8 @@ package Project.Views.ViewIDE.DebugArea;
 
 import java.util.List;
 
-import Project.Views.ViewIDE.LanguageDelegates.Delegate_f.VMDBSymbol;
-import Project.Views.ViewIDE.LanguageDelegates.Delegate_f.VMDebugger;
+import Project.Views.ViewIDE.LanguageDelegate.VMDBSymbol;
+import Project.Views.ViewIDE.LanguageDelegate.VMDebugger;
 
 /**
  * Area for displaying active variables stored on the stack.

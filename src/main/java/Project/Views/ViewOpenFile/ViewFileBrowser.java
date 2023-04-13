@@ -1,7 +1,7 @@
 package Project.Views.ViewOpenFile;
 
 import Project.Program;
-import Project.Documents.DocumentList;
+import Project.FileInterface.DocumentList;
 import Project.FileInterface.FileInterface;
 import Project.UIElements.UIDocumentTable;
 import Project.UIElements.UISize;

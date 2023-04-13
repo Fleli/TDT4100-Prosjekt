@@ -6,15 +6,14 @@ import java.util.List;
 
 import Project.Compiler.Compiler.Error;
 import Project.Compiler.Lexer.Token;
-import Project.Compiler.Parser.Expressions.Expression;
-import Project.Compiler.Parser.Expressions.ExpressionParser;
-import Project.Compiler.Parser.StatementTypes.Assignment;
-import Project.Compiler.Parser.StatementTypes.Conditional;
-import Project.Compiler.Parser.StatementTypes.Dealloc;
-import Project.Compiler.Parser.StatementTypes.Declaration;
-import Project.Compiler.Parser.StatementTypes.HeapAssignment;
-import Project.Compiler.Parser.StatementTypes.Print;
-import Project.Compiler.Parser.StatementTypes.While;
+import Project.Compiler.Statements.Assignment;
+import Project.Compiler.Statements.Conditional;
+import Project.Compiler.Statements.Dealloc;
+import Project.Compiler.Statements.Declaration;
+import Project.Compiler.Statements.Expression;
+import Project.Compiler.Statements.HeapAssignment;
+import Project.Compiler.Statements.Print;
+import Project.Compiler.Statements.While;
 
 public class Parser {
     
@@ -239,14 +238,20 @@ public class Parser {
                     panic(global_panic_terminators);
                 }
                 
-            }
-            
-            else {
+            } else {
+                
+                // Vi forventet en statement, men fant en annen token
                 submitErrorOnToken("statement");
-                // lag en form for error recovery her, for eksempel panikk frem til semikolon e.l.
-                // merk også at denne delen ikke er ferdig. I stedet for bare if-else vil det komme
-                // if-else if-...-else for å støtte flere statements.
-                return statements;
+                
+                // Siden det vi møtte på *kan* ha vært f.eks. 'string' (som er et keyword), 
+                // må vi hoppe over tokenen, ellers får vi infinite loop (panikkfunksjonen 
+                // stopper og går IKKE forbi nøkkelordet, så ellers ender vi opp her igjen
+                // neste runde)
+                incrementIndex();
+                
+                // Få panikk og finn frem til neste nye statement for å recovere fra feilen.
+                panic(global_panic_terminators);
+                
             }
             
         }

@@ -1,17 +1,15 @@
 package Project.Views.ViewIDE;
 
 import Project.Program;
-import Project.Documents.Document;
+import Project.FileInterface.Document;
 import Project.FileInterface.FileInterface;
 import Project.UIElements.UICodeLine;
 import Project.UIElements.UINode;
 import Project.UIElements.UISize;
 import Project.Views.UIView;
 import Project.Views.ViewMenu;
-import Project.Views.ViewIDE.IDEs.IDE;
-import Project.Views.ViewIDE.LanguageDelegates.LanguageDelegate;
-import Project.Views.ViewIDE.LanguageDelegates.Delegate_f.Delegate_f;
-import javafx.scene.input.Clipboard;
+import Project.Views.ViewIDE.LanguageDelegate.Delegate_f;
+import Project.Views.ViewIDE.LanguageDelegate.LanguageDelegate;
 import javafx.scene.input.KeyCode;
 import javafx.scene.input.KeyEvent;
 import javafx.scene.paint.Color;
@@ -145,28 +143,7 @@ public class ViewIDE extends UIView implements IDE {
          * TODO: Bruk regionStart og regionEnd (line/col for begge)
          */
         
-        if ( activeLine != null  &&  keyEvent.getCode() == KeyCode.V  &&  keyEvent.isMetaDown() ) {
-            
-            Clipboard cb = Clipboard.getSystemClipboard();
-            String string = cb.getString();
-            
-            for ( Character c : string.toCharArray() ) {
-                
-                if ( c == '\n' ) {
-                    
-                    activeLine.didPressEnter();
-                    
-                } else {
-                    
-                    activeLine.writeText(new String("" + c));
-                    
-                }
-                
-            }
-            
-            UINode.ignoreKeyDown = true;
-            
-        } else if ( keyEvent.isMetaDown()  &&  keyEvent.getCode() == KeyCode.ENTER ) {
+        if ( keyEvent.isMetaDown()  &&  keyEvent.getCode() == KeyCode.ENTER ) {
             
             delegate.ctrlRight(topLine);
             
@@ -182,6 +159,7 @@ public class ViewIDE extends UIView implements IDE {
     public void afterKeyDown() {
         
         delegate.reactOnTextWritten(topLine);
+        
         super.afterKeyDown();
         
         if (autosave) save(topLine.recursivelyFetchSourceCode());
@@ -241,10 +219,10 @@ public class ViewIDE extends UIView implements IDE {
     private void save(String sourceCode) {
         
         try {
-                
+            
             document.setContent(sourceCode);
             FileInterface.saveDocument(document);
-        
+            
         } catch (Exception e) {
             
             System.out.println(e.getLocalizedMessage());

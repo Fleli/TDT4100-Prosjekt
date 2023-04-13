@@ -2,7 +2,7 @@ package Project.Views.ViewIDE.DebugArea;
 
 import Project.UIElements.UIConsoleLine;
 import Project.UIElements.UINode;
-import Project.Views.ViewIDE.LanguageDelegates.Delegate_f.VMDebugger;
+import Project.Views.ViewIDE.LanguageDelegate.VMDebugger;
 import javafx.scene.paint.Color;
 import javafx.scene.shape.Rectangle;
 

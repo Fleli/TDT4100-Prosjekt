@@ -1,7 +1,7 @@
 package Project.Compiler.NameBinding;
 
 import Project.Compiler.Lexer.Token;
-import Project.Compiler.Parser.StatementTypes.Declaration;
+import Project.Compiler.Statements.Declaration;
 
 public class ScopeEntry {
     

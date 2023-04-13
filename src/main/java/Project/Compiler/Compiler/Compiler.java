@@ -61,15 +61,24 @@ public class Compiler {
         bindNames(program);
         profiler.finishedStage(2);
         
+        // Finner errors i source-programmet
+        errors.addAll(lexer.getErrors());
+        errors.addAll(parser.getErrors());
+        errors.addAll(environment.getErrors());
+        
+        // Ferdig dersom executable ikke skal genereres
+        if (hadCompilationIssues()) {
+            // TODO: Consider notifying caller if compilation issues
+            return;
+        }
+        
         // Optimize kode
         optimizer.setOptimizerConfiguration(optimizeConfiguration);
         optimizer.setProgram(program);
         optimizer.optimize();
         profiler.finishedStage(3);
         
-        // Finner errors i source-programmet
-        errors.addAll(parser.getErrors());
-        errors.addAll(environment.getErrors());
+        // Legger til evt. feil etter optimisering
         errors.addAll(optimizer.getErrors());
         
         // Ferdig dersom executable ikke skal genereres

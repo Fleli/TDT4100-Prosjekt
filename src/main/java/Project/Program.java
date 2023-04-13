@@ -1,9 +1,6 @@
 package Project;
 
-// git ls-files | grep java |  xargs wc -l
-// for å finne antall linjer med .java-extension
-
-import Project.Documents.Document;
+import Project.FileInterface.Document;
 import Project.UIElements.UINode;
 import Project.UIElements.UISize;
 import Project.Views.ViewMenu;
@@ -28,8 +25,6 @@ public class Program extends Application {
     
     private UINode activeView;
     
-    // ...
-    
     @Override
     public void start(Stage primaryStage) throws Exception {
         
@@ -37,7 +32,7 @@ public class Program extends Application {
         
         scene.addEventFilter(MouseEvent.MOUSE_CLICKED, (mouse) -> {
             
-            UINode.ignoreMouseDown = false;
+            UINode.ignoreMouseDown = false; 
             
             if ( activeView != null ) {
                 activeView.MOUSE_CLICKED( new Point2D(mouse.getX(), mouse.getY()) );

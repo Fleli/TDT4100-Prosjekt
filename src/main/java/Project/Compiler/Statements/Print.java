@@ -1,4 +1,4 @@
-package Project.Compiler.Parser.StatementTypes;
+package Project.Compiler.Statements;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -10,7 +10,6 @@ import Project.Compiler.Lexer.Token;
 import Project.Compiler.NameBinding.Environment;
 import Project.Compiler.Optimizer.Optimizer;
 import Project.Compiler.Parser.Statement;
-import Project.Compiler.Parser.Expressions.Expression;
 
 public class Print implements Statement {
     
