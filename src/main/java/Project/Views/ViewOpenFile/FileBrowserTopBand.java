@@ -36,7 +36,7 @@ public class FileBrowserTopBand extends UINode {
             ""
         );
         button_backToMenu.setImage( new Image(
-            "file:TDT4100-prosjekt-frederee/src/main/java/Project/Images/leftArrow.png",
+            "file:src/main/java/Project/Images/leftArrow.png",
             50, 50, true, true
         ) );
         button_backToMenu.setActionInside( () -> {

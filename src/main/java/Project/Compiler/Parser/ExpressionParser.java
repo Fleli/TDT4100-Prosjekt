@@ -38,7 +38,7 @@ public class ExpressionParser {
         operators.add( new Operator("infix", "/", 7) );
         operators.add( new Operator("infix", "%", 7) );
         
-        // legg til ~ her senere
+        // legg til ~ og unær minus her senere
         
         for ( Operator operator : operators ) {
             
@@ -133,11 +133,15 @@ public class ExpressionParser {
     
     private Operator find_operator ( int level ) {
         
-        if ( parser.inputIsExhausted() ) return null;
+        if ( parser.inputIsExhausted() ) {
+            return null;
+        }
         
         Token token = parser.token();
         
-        if ( !token.typeIs("operator") ) return null;
+        if ( !token.typeIs("operator") ) {
+            return null;
+        }
         
         String content = token.content();
         
@@ -147,7 +151,9 @@ public class ExpressionParser {
             .filter( op -> op.getSyntax().equals(content) )
             .toList();
         
-        if ( operator.size() == 0 ) return null;
+        if ( operator.size() == 0 ) {
+            return null;
+        }
         
         parser.incrementIndex();
         

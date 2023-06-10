@@ -78,7 +78,7 @@ public class UpperBand_f extends UINode {
         button_debug_clock.setMainLabelStyle("-fx-font-weight: bold;");
         button_debug_clock.setFill(150, 220, 170);
         button_debug_clock.setImage( new Image(
-            "file:TDT4100-prosjekt-frederee/src/main/java/Project/Images/Editor/ferdig.png",
+            "file:src/main/java/Project/Images/Editor/ferdig.png",
             buttonSize.height * 0.6, buttonSize.height * 0.6, true, true
         ) );
         button_debug.addChild(button_debug_clock);
@@ -112,7 +112,7 @@ public class UpperBand_f extends UINode {
         button.setMainLabelTranslationX(height - padding);
         
         button.setImage( new Image(
-            "file:TDT4100-prosjekt-frederee/src/main/java/Project/Images/Editor/" + image,
+            "file:src/main/java/Project/Images/Editor/" + image,
             buttonSize.width / 2 - 2 * padding, buttonSize.height / 2 - 2 * padding, true, true
         ) );
         

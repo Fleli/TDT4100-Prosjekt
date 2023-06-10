@@ -2,7 +2,6 @@ package Project.Views.ViewIDE.LanguageDelegate;
 
 import Project.Program;
 import Project.Compiler.Compiler.CompilerProfiler;
-import Project.UIElements.UICodeLine;
 import Project.UIElements.UINode;
 import Project.Views.ViewIDE.ViewIDE;
 import javafx.scene.control.Label;
@@ -14,19 +13,13 @@ public class LowerBand_f extends UINode {
     
     private Rectangle background;
     
-    private LanguageDelegate delegate;
-    private UICodeLine topLine;
-    
     private Label[] profilingInfoLabels;
     
     private String[] stages = { "Lex", "Parse", "Bind", "Optimize", "Generate" };
     
-    public LowerBand_f(LanguageDelegate delegate, UICodeLine topLine) {
+    public LowerBand_f() {
         
         super();
-        
-        this.delegate = delegate;
-        this.topLine = topLine;
         
         setViewOrder(-5);
         setTranslateY(ViewIDE.upperBandHeight + ViewIDE.codeAreaHeight);

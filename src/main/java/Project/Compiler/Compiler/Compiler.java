@@ -73,7 +73,7 @@ public class Compiler {
         }
         
         // Optimize kode
-        optimizer.setOptimizerConfiguration(optimizeConfiguration);
+        optimizer.setOptimizerConfiguration(0);
         optimizer.setProgram(program);
         optimizer.optimize();
         profiler.finishedStage(3);
@@ -85,7 +85,7 @@ public class Compiler {
         if (hadCompilationIssues() || !generateExecutable) {
             // TODO: Consider notifying caller if compilation issues
             return;
-        }
+        } 
         
         // Sett opp liste for executable og si fra til profiler
         InstructionList executable = new InstructionList();

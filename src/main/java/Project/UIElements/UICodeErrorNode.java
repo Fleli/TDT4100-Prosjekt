@@ -34,12 +34,12 @@ public class UICodeErrorNode extends UIButton {
         this.spacing = line.getSpacing();
         
         image_issue = new Image(
-            "file:TDT4100-prosjekt-frederee/src/main/java/Project/Images/Editor/xcodeError.png",
+            "file:src/main/java/Project/Images/Editor/xcodeError.png",
             fontSize + spacing, fontSize + spacing, true, true
         );
         
         image_warning = new Image(
-            "file:TDT4100-prosjekt-frederee/src/main/java/Project/Images/Editor/warning.png",
+            "file:src/main/java/Project/Images/Editor/warning.png",
             fontSize + spacing, fontSize + spacing, true, true
         );
         

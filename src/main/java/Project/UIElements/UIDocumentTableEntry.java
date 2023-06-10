@@ -60,7 +60,7 @@ public class UIDocumentTableEntry extends UIButton {
         setViewOrder(1);
         
         imgView = new ImageView( new Image( 
-            "file:TDT4100-prosjekt-frederee/src/main/java/Project/Images/FileFormats/" + document.getExtension() + ".png",
+            "file:src/main/java/Project/Images/FileFormats/" + document.getExtension() + ".png",
             fontSize + spacing, fontSize + spacing, true, true
         ) );
         getChildren().add(imgView);

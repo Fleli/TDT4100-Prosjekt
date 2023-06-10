@@ -59,7 +59,7 @@ public class Conditional implements Statement {
     public Conditional (Expression condition, List<Statement> body, Token start, Token leftBrace) {
         
         if ( condition == null  ||  body == null ) {
-            throw new IllegalArgumentException("All arguments must be non-null yo");
+            throw new IllegalArgumentException("All arguments must be non-null.");
         }
         
         this.condition = condition;
@@ -104,7 +104,7 @@ public class Conditional implements Statement {
         }
         
     }
-
+    
     @Override
     public InstructionList generateInstructions(Environment environment) {
         

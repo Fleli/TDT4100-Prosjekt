@@ -36,7 +36,7 @@ public class ViewMenu extends UIView {
     private NewFileWindow newFileWindow;
     
     private ImageView imgView_logo = new ImageView( new Image(
-        "file:TDT4100-prosjekt-frederee/src/main/java/Project/Images/xcodelogo.png",
+        "file:src/main/java/Project/Images/xcodelogo.png",
         logoWithAndHeight, logoWithAndHeight, true, true
     ));
     

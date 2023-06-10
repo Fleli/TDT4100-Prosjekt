@@ -12,7 +12,7 @@ import java.util.List;
 
 public class FileInterface {
     
-    private static final String filePath = "TDT4100-prosjekt-frederee/src/main/java/Project/Files/";
+    private static final String filePath = "src/main/java/Project/Files/";
     
     public static void createFileNamed(
         
@@ -169,7 +169,7 @@ public class FileInterface {
     
     public static void delete(String fileName, String extension) throws IOException {
         
-        String path = "TDT4100-prosjekt-frederee/src/main/java/Project/Files/" + fileName + "." + extension;
+        String path = "src/main/java/Project/Files/" + fileName + "." + extension;
         File file = new File(path);
         
         boolean didDelete = file.delete();

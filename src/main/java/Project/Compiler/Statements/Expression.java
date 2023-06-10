@@ -295,14 +295,8 @@ public class Expression implements Statement {
                 
             }
             
-            // int value = stack.pop();
-            // int heap_base_address = stack.peek(0);
-            // int heap_base_offset = instructionMemory.getNextInstruction().getOpcode_or_operand();
-            // int heap_address = heap_base_address + heap_base_offset;
-            // heap.setData(heap_address, value);
-            
-            // Etter at chars er lagt til, vil fortsatt pointeren til stringen ligge på topp
-            // av stack slik at den kan assignes til en variabel e.l.
+            // TODO: Skriv 0 eksplisitt til (stringLiteral.length())-offset på heap 
+            // for å null-terminere strings (har fungert så langt fordi heapen er stor nok)
             
         } else {
             

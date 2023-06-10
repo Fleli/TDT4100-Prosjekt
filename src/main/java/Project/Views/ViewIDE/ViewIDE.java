@@ -158,11 +158,19 @@ public class ViewIDE extends UIView implements IDE {
     @Override
     public void afterKeyDown() {
         
+        long react_start = System.currentTimeMillis();
+        
         delegate.reactOnTextWritten(topLine);
         
         super.afterKeyDown();
         
-        if (autosave) save(topLine.recursivelyFetchSourceCode());
+        if (autosave) {
+            save(topLine.recursivelyFetchSourceCode());
+        }
+        
+        long react_end = System.currentTimeMillis();
+        
+        System.out.println("Compiler & FileInterface response time: " + (react_end - react_start) + " ms.");
         
     }
     
