@@ -18,4 +18,4 @@ My project ended up being a collection of several parts:
 
 ## Running the program
 
-To run the program, go src/main/java/Project and choose the Program.java file. Run the `main` function in the `Program` class.
+To run the program, go to `src/main/java/Project` and choose the `Program.java` file. Run the `main` function in the `Program` class.
